@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, UserCircle, MessageSquare, Mail, Type } from "lucide-react";
+import { Loader2, UserCircle, MessageSquare, Mail } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Schema based on backend constraints
 const formSchema = z.object({
@@ -38,6 +39,7 @@ const formSchema = z.object({
 const HumanSettingsTab = () => {
   const { selectedChatbot } = useChatbot();
   const { markDirty, markClean } = useUnsavedChanges();
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isNewSettings, setIsNewSettings] = useState(false);
@@ -77,10 +79,10 @@ const HumanSettingsTab = () => {
   }, [markClean]);
 
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchSettings();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   const fetchSettings = async () => {
     setInitialLoading(true);
@@ -192,14 +194,6 @@ const HumanSettingsTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center rounded-xl border bg-white p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="rounded-xl border bg-white p-6 shadow-sm">
       <div className="mb-6">
@@ -229,11 +223,15 @@ const HumanSettingsTab = () => {
                   </FormDescription>
                 </div>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="data-[state=checked]:bg-blue-600"
-                  />
+                  {initialLoading ? (
+                    <Skeleton className="h-6 w-10 rounded-full" />
+                  ) : (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-blue-600"
+                    />
+                  )}
                 </FormControl>
               </FormItem>
             )}
@@ -272,11 +270,15 @@ const HumanSettingsTab = () => {
                         </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={!isEnabled}
-                        />
+                        {initialLoading ? (
+                          <Skeleton className="h-6 w-10 rounded-full" />
+                        ) : (
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={!isEnabled}
+                          />
+                        )}
                       </FormControl>
                     </FormItem>
                   )}
@@ -305,11 +307,15 @@ const HumanSettingsTab = () => {
                           </FormDescription>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={!isEnabled || !showEscalationButtons}
-                          />
+                          {initialLoading ? (
+                            <Skeleton className="h-6 w-10 rounded-full" />
+                          ) : (
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={!isEnabled || !showEscalationButtons}
+                            />
+                          )}
                         </FormControl>
                       </FormItem>
                     )}
@@ -330,12 +336,16 @@ const HumanSettingsTab = () => {
                           </span>
                         </div>
                         <FormControl>
-                          <Input
-                            placeholder="That answered my question 👍"
-                            {...field}
-                            value={field.value || ""}
-                            disabled={!isEnabled || !showEscalationButtons}
-                          />
+                          {initialLoading ? (
+                            <Skeleton className="h-9 w-full rounded-md" />
+                          ) : (
+                            <Input
+                              placeholder="That answered my question 👍"
+                              {...field}
+                              value={field.value || ""}
+                              disabled={!isEnabled || !showEscalationButtons}
+                            />
+                          )}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -356,12 +366,16 @@ const HumanSettingsTab = () => {
                           </span>
                         </div>
                         <FormControl>
-                          <Input
-                            placeholder="Connect to an agent 👤"
-                            {...field}
-                            value={field.value || ""}
-                            disabled={!isEnabled || !showEscalationButtons}
-                          />
+                          {initialLoading ? (
+                            <Skeleton className="h-9 w-full rounded-md" />
+                          ) : (
+                            <Input
+                              placeholder="Connect to an agent 👤"
+                              {...field}
+                              value={field.value || ""}
+                              disabled={!isEnabled || !showEscalationButtons}
+                            />
+                          )}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -377,13 +391,17 @@ const HumanSettingsTab = () => {
                           Human Support Confirmation Message
                         </FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Your request has been forwarded to our human support team. They will respond soon."
-                            className="min-h-[80px] resize-none"
-                            {...field}
-                            value={field.value || ""}
-                            disabled={!isEnabled || !showEscalationButtons}
-                          />
+                          {initialLoading ? (
+                            <Skeleton className="h-20 w-full rounded-md" />
+                          ) : (
+                            <Textarea
+                              placeholder="Your request has been forwarded to our human support team. They will respond soon."
+                              className="min-h-[80px] resize-none"
+                              {...field}
+                              value={field.value || ""}
+                              disabled={!isEnabled || !showEscalationButtons}
+                            />
+                          )}
                         </FormControl>
                         <FormDescription className="mt-2 text-xs">
                           Message shown to users after they request human
@@ -419,11 +437,15 @@ const HumanSettingsTab = () => {
                         </FormDescription>
                       </div>
                       <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={!isEnabled}
-                        />
+                        {initialLoading ? (
+                          <Skeleton className="h-6 w-10 rounded-full" />
+                        ) : (
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={!isEnabled}
+                          />
+                        )}
                       </FormControl>
                     </FormItem>
                   )}
@@ -440,12 +462,16 @@ const HumanSettingsTab = () => {
                             Notification Email Addresses
                           </FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="support@example.com, admin@example.com"
-                              {...field}
-                              value={field.value || ""}
-                              disabled={!isEnabled}
-                            />
+                            {initialLoading ? (
+                              <Skeleton className="h-9 w-full rounded-md" />
+                            ) : (
+                              <Input
+                                placeholder="support@example.com, admin@example.com"
+                                {...field}
+                                value={field.value || ""}
+                                disabled={!isEnabled}
+                              />
+                            )}
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
                             Separate multiple emails with commas.

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Loader2, RefreshCw, X, Check, Info } from "lucide-react";
 import { ROLES, ROLE_LEVEL } from "./ChatbotMembers";
+import { useMemberUsage } from "../account-members/MemberUsageBadge";
 
 const STATUS_BADGE = {
   PENDING: "bg-yellow-100 text-yellow-700",
@@ -26,6 +27,7 @@ const STATUS_BADGE = {
 
 export const OutgoingInvitations = () => {
   const { user } = useAuth();
+  const { atLimit } = useMemberUsage();
   const { selectedChatbot } = useChatbot();
   const [outgoingInvitations, setOutgoingInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +201,7 @@ export const OutgoingInvitations = () => {
           <Button
             className="w-full bg-blue-500 px-6 font-semibold text-white shadow-sm hover:bg-blue-600 xl:w-auto"
             onClick={handleSendInvite}
-            disabled={sending}
+            disabled={sending || atLimit}
           >
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

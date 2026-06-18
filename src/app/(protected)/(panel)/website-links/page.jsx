@@ -376,7 +376,8 @@ const WebsiteLinks = () => {
               st === "DELETING" ||
               st === "UPLOADED" ||
               st === "QUEUED" ||
-              st === "TPM_DEFERRED"
+              st === "TPM_DEFERRED" ||
+              st === "YOUTUBE_DEFERRED"
             ) {
               statsUpdate.pending += 1;
             }
@@ -439,6 +440,7 @@ const WebsiteLinks = () => {
                 ...f,
                 status: data.status,
                 updatedAt: new Date().toISOString(),
+                ...(data.storageUri != null && { storageUri: data.storageUri }),
                 ...(data.deferAttempts != null && { deferAttempts: data.deferAttempts }),
                 ...(data.maxDeferAttempts != null && { maxDeferAttempts: data.maxDeferAttempts }),
               }
@@ -977,6 +979,25 @@ const WebsiteLinks = () => {
                                   </TooltipTrigger>
                                   <TooltipContent side="left" className="border-none bg-[#222222] text-white">
                                     <p>Embedding capacity limit hit. Auto-retrying ({attempt} of {max} attempts).</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            }
+                            if (st === "YOUTUBE_DEFERRED") {
+                              const attempt = file.deferAttempts ?? 1;
+                              const max = file.maxDeferAttempts ?? 5;
+                              return (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge
+                                      variant="outline"
+                                      className="cursor-help border-slate-200 bg-white font-medium text-slate-500 hover:bg-white"
+                                    >
+                                      Queued
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left" className="border-none bg-[#222222] text-white">
+                                    <p>Fetching YouTube transcript — will retry shortly ({attempt} of {max} attempts).</p>
                                   </TooltipContent>
                                 </Tooltip>
                               );

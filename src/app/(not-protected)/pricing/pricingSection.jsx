@@ -1,15 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+// import Image from "next/image";
 import api from "@/lib/axios";
-import { Check, Shield, Zap, Box, Loader2, Rocket, Tag } from "lucide-react";
+import { Check, Zap, Box, Loader2, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import DowngradeModal from "./DowngradeModal";
 import AddonsSection from "@/app/(protected)/(panel)/billing/addons/AddonsSection";
+import PromoCodeButton from "./PromoCodeButton";
+import { useAuth } from "@/context/AuthContext";
 
-export default function PricingSection() {
-  const [plans, setPlans] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function PricingSection({ plans = [], loading = true }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
   const [isYearly, setIsYearly] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,45 +24,34 @@ export default function PricingSection() {
   const [downgradeModal, setDowngradeModal] = useState({ open: false, plan: null });
   const [cancelDowngradeLoading, setCancelDowngradeLoading] = useState(false);
   const [trialSwitchModal, setTrialSwitchModal] = useState({ open: false, plan: null });
+  const [highlightedPlan, setHighlightedPlan] = useState(null);
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const response = await api.get("/billing/plans");
-        if (response.data.success) {
-          setPlans(response.data.data.plans);
-        }
-      } catch (error) {
-        console.error("Failed to fetch plans:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPlans();
+    const interval = searchParams.get("interval");
+    if (interval === "year") {
+      setIsYearly(true);
+    } else if (interval === "month") {
+      setIsYearly(false);
+    }
+    const planParam = searchParams.get("plan");
+    if (planParam) {
+      setHighlightedPlan(planParam.toLowerCase());
+      const scrollT = setTimeout(() => {
+        document.getElementById(`plan-${planParam.toLowerCase()}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+      const clearT = setTimeout(() => setHighlightedPlan(null), 5000);
+      return () => { clearTimeout(scrollT); clearTimeout(clearT); };
+    }
+  }, [searchParams]);
 
-    // F6: Fetch current subscription if logged in
-    const fetchCurrentSub = async () => {
-      try {
-        const res = await api.get("/billing/subscription/current");
-        if (res?.data?.success) {
-          setCurrentSubscription(res.data.data);
-          // Consider logged in if we got any data back (even just trial history)
-          if (res.data.data) setIsLoggedIn(true);
-        }
-      } catch {
-        // User not subscribed or not logged in — that's fine
-      }
-    };
-    fetchCurrentSub();
-
-    // Pre-fill promo code from referral page if user applied one
+  // Always load Paddle and promo — needed for guests and logged-in users alike
+  useEffect(() => {
     const savedPromo = localStorage.getItem("pendingPromoCode");
     if (savedPromo) {
       setPromoCode(savedPromo);
       setShowPromo(true);
     }
 
-    // F8: Paddle environment from env var
     const script = document.createElement("script");
     script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
     script.async = true;
@@ -75,6 +69,40 @@ export default function PricingSection() {
     };
   }, []);
 
+  // Fetch subscription only once auth state is resolved and user is confirmed logged in
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setIsLoggedIn(false);
+      setCurrentSubscription(null);
+      return;
+    }
+    const fetchCurrentSub = async () => {
+      try {
+        const res = await api.get("/billing/subscription/current");
+        if (res?.data?.success) {
+          setCurrentSubscription(res.data.data);
+          if (res.data.data) setIsLoggedIn(true);
+        }
+      } catch {
+        // Subscription fetch failed but user is authenticated
+        setIsLoggedIn(true);
+      }
+    };
+    fetchCurrentSub();
+  }, [user, authLoading]);
+
+  // After login redirect back to /pricing, auto-resume the checkout the user intended
+  useEffect(() => {
+    if (!isLoggedIn || plans.length === 0) return;
+    const pendingPlanId = sessionStorage.getItem("pendingPlanId");
+    if (!pendingPlanId) return;
+    const pendingPlan = plans.find((p) => p.id === pendingPlanId);
+    sessionStorage.removeItem("pendingPlanId");
+    sessionStorage.removeItem("pendingBillingInterval");
+    if (pendingPlan) handleSubscribe(pendingPlan);
+  }, [isLoggedIn, plans]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSubscribe = async (plan, confirmed = false) => {
     const planName = getPlanName(plan.type);
     if (
@@ -82,7 +110,7 @@ export default function PricingSection() {
       !plan.price ||
       parseFloat(plan.price) === 0
     ) {
-      window.location.href = "mailto:sales@yourdomain.com";
+      window.location.href = "mailto:krishnagupta0405@gmail.com?subject=Enterprise Plan Inquiry";
       return;
     }
 
@@ -150,20 +178,31 @@ export default function PricingSection() {
         token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
       });
 
-      const body = { subscriptionId: plan.id };
-      if (promoCode.trim()) {
-        body.promoCode = promoCode.trim();
-      }
+      const successUrl = `${window.location.origin}/billing/success?plan=${encodeURIComponent(planName)}&interval=${encodeURIComponent(plan.billingInterval || "")}`;
 
-      const response = await api.post("/billing/checkout/create", body);
-      localStorage.removeItem("pendingPromoCode");
-      const { transactionId } = response.data.data;
-      window.Paddle?.Checkout.open({
-        transactionId,
-        settings: {
-          successUrl: `${window.location.origin}/billing/success?plan=${encodeURIComponent(planName)}&interval=${encodeURIComponent(plan.billingInterval || "")}`,
-        },
-      });
+      if (isLoggedIn) {
+        const body = { subscriptionId: plan.id };
+        if (promoCode.trim()) {
+          body.promoCode = promoCode.trim();
+        }
+        if (currentSubscription?.usedTrialPlanIds?.includes(plan.id)) {
+          body.directPurchase = true;
+        }
+        const response = await api.post("/billing/checkout/create", body);
+        localStorage.removeItem("pendingPromoCode");
+        const { transactionId } = response.data.data;
+        window.Paddle?.Checkout.open({
+          transactionId,
+          settings: { successUrl },
+        });
+      } else {
+        // Not logged in — save intent and redirect to login, then return to pricing
+        sessionStorage.setItem("pendingPlanId", plan.id);
+        sessionStorage.setItem("pendingBillingInterval", plan.billingInterval || "");
+        router.push(`/login?callbackUrl=${encodeURIComponent("/pricing")}`);
+        setCheckoutLoading(null);
+        return;
+      }
     } catch (error) {
       const msg = error?.response?.data?.message || "Checkout failed";
       toast.error(msg, { duration: 6000 });
@@ -197,7 +236,12 @@ export default function PricingSection() {
     if (t.includes("scale") || t.includes("business"))
       return <Zap className="h-5 w-5 text-blue-600" />;
     if (t.includes("enterprise") || t.includes("custom"))
-      return <Shield className="h-5 w-5 text-blue-600" />;
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-5 w-5">
+          <path d="M216,56v58.77c0,84.18-71.31,112.07-85.54,116.8a7.54,7.54,0,0,1-4.92,0C111.31,226.86,40,199,40,114.79V56a8,8,0,0,1,8-8H208A8,8,0,0,1,216,56Z" opacity="0.2" fill="#059669" />
+          <path d="M208,40H48A16,16,0,0,0,32,56v58.77c0,89.61,75.82,119.34,91,124.39a16,16,0,0,0,10,0c15.2-5.05,91-34.78,91-124.39V56A16,16,0,0,0,208,40Zm0,74.79c0,78.42-66.35,104.62-80,109.18C114.35,219.41,48,193.21,48,114.79V56H208Z" fill="#059669" />
+        </svg>
+      );
     return <Box className="h-5 w-5 text-blue-600" />;
   };
 
@@ -226,6 +270,12 @@ export default function PricingSection() {
 
   // Check if user has already used the free trial for this plan
   const hasUsedTrial = (plan) => {
+    const usedIds = currentSubscription?.usedTrialPlanIds || [];
+    return usedIds.includes(plan.id);
+  };
+
+  // Check if user has ever used this plan — trial OR direct payment
+  const hasPreviouslySubscribed = (plan) => {
     const usedIds = currentSubscription?.usedTrialPlanIds || [];
     return usedIds.includes(plan.id);
   };
@@ -275,7 +325,7 @@ export default function PricingSection() {
       return targetPrice > currentPrice ? "Upgrade" : "Downgrade";
     }
 
-    if (hasUsedTrial(plan)) return "Buy Now";
+    if (hasPreviouslySubscribed(plan)) return "Buy Now";
 
     return "Start a free trial";
   };
@@ -301,8 +351,8 @@ export default function PricingSection() {
   });
 
   return (
-    <div className="min-h-screen bg-white p-4 font-sans text-slate-900 md:p-8 lg:p-12">
-      <div className="mx-auto mt-10 max-w-5xl">
+    <div id="pricing-section" className="min-h-screen p-4 font-sans text-slate-900 md:p-8 lg:p-12">
+      <div className="mx-auto mt-10 max-w-7xl">
         {/* Header & Toggle */}
         <div className="mb-16 flex flex-col items-center">
           <div className="relative mb-10 flex w-full items-center justify-center">
@@ -318,7 +368,12 @@ export default function PricingSection() {
                 type="button"
                 role="switch"
                 aria-checked={isYearly}
-                onClick={() => setIsYearly(!isYearly)}
+                onClick={() => {
+                  const newIsYearly = !isYearly;
+                  setIsYearly(newIsYearly);
+                  const interval = newIsYearly ? "year" : "month";
+                  router.push(`/pricing?interval=${interval}`);
+                }}
                 className="relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-emerald-500 transition-colors duration-200 ease-in-out focus:outline-none"
               >
                 <span
@@ -337,44 +392,27 @@ export default function PricingSection() {
               </span>
 
               {/* Save 40% annotation */}
-              <div className="absolute top-1/2 -right-[120px] hidden -translate-y-1/2 items-center md:flex">
-                <svg
-                  width="45"
-                  height="35"
-                  viewBox="0 0 60 40"
-                  fill="none"
-                  className="-mt-2 stroke-current text-blue-600"
-                >
-                  <path
-                    d="M 50,30 C 60,10 30,10 40,30 C 45,40 15,25 15,25"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+              <div className="absolute top-3/4 -right-[140px] hidden -translate-y-1/2 items-center md:flex gap-2">
+                <div className="-mt-2"> 
+                  <img
+                    src="/landing/scribble-arrow-icon.svg"
+                    alt="Save 37%"
+                    width={55}
+                    height={45}
                   />
-                  <path
-                    d="M 15,25 L 25,18 M 15,25 L 23,33"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="mb-2 ml-1 font-bold text-blue-600">
-                  Save 40%
+                </div>
+                <span style={{fontWeight: 'bolder'}} className="mb-2 mt-4 -ml-2 text-blue-600">
+                  Save 37%
                 </span>
               </div>
             </div>
           </div>
 
-          {/* F10: Promo code input */}
+          {/* Promo code input — only for logged-in users */}
           <div className="w-full max-w-md">
-            {!showPromo ? (
-              <button
-                onClick={() => setShowPromo(true)}
-                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-              >
-                <Tag className="h-4 w-4" />
-                Have a promo code?
-              </button>
+            {!isLoggedIn ? null : !showPromo ? (
+              // <PromoCodeButton onClick={() => setShowPromo(true)} />
+              <></>
             ) : (
               <div className="flex gap-2">
                 <input
@@ -407,7 +445,7 @@ export default function PricingSection() {
             No pricing plans available.
           </div>
         ) : (
-          <div className="flex w-full flex-col gap-6 pb-10">
+          <div className="mx-auto flex w-full flex-col gap-6 pb-10">
             {displayedPlans.map((plan) => {
               const isGrowth =
                 plan.type.toLowerCase().includes("growth") ||
@@ -427,125 +465,200 @@ export default function PricingSection() {
               const isDisabled = (isCurrent && !isTrialing && !hasScheduledDowngrade) || isDowngradeTarget;
               const buttonLabel = getButtonLabel(plan);
 
-              const featuresList = [
-                {
-                  label: `${plan.chatbotGiven === -1 || plan.chatbotGiven > 99999 ? "Up to 10,000" : plan.chatbotGiven === 1 ? "1" : "Up to " + plan.chatbotGiven.toLocaleString()} chatbot${plan.chatbotGiven === 1 ? "" : "s"}`,
-                  included: plan.chatbotGiven > 0 || plan.chatbotGiven === -1,
-                  highlightColor: "text-slate-600 font-medium",
-                },
-                {
-                  label: `Up to ${plan.messagesSentByAi === -1 || plan.messagesSentByAi > 99999 ? "Customizable message volume" : plan.messagesSentByAi >= 1000 ? plan.messagesSentByAi / 1000 + "k messages per month" : plan.messagesSentByAi + " messages per month"}`,
-                  included:
-                    plan.messagesSentByAi > 0 ||
-                    plan.messagesSentByAi === -1,
-                  highlightColor: "text-slate-600 font-medium",
-                },
-                {
-                  label: `Up to ${plan.pagesUpto === -1 || plan.pagesUpto > 99999 ? "500,000" : plan.pagesUpto.toLocaleString()} pages`,
-                  included: plan.pagesUpto > 0 || plan.pagesUpto === -1,
-                  highlightColor: "text-slate-600 font-medium",
-                },
-                {
-                  label: plan.autoSyncData
-                    ? "Auto Refresh (Daily)"
-                    : "Manual Refresh",
-                  included: true,
-                  highlightColor:
-                    plan.autoSyncData && isEnterprise
-                      ? "text-emerald-600 font-bold"
-                      : plan.autoSyncData
-                        ? "text-blue-600 font-bold"
-                        : "text-slate-600 font-medium",
-                  underlineDisabled: true,
-                },
-                {
-                  label: `${plan.teamMemberAccess === -1 || plan.teamMemberAccess > 99999 ? "Up to 10,000" : plan.teamMemberAccess === 1 ? "1" : "Up to " + plan.teamMemberAccess.toLocaleString()} team member${plan.teamMemberAccess === 1 ? "" : "s"}`,
-                  included:
-                    plan.teamMemberAccess > 0 || plan.teamMemberAccess === -1,
-                  highlightColor:
-                    plan.teamMemberAccess > 1
-                      ? "text-slate-900 font-bold"
-                      : "text-slate-600 font-medium",
-                },
-                {
-                  label: "Integrations with multiple platforms",
-                  included:
-                    isGrowth ||
-                    plan.type.toLowerCase().includes("scale") ||
-                    isEnterprise,
-                  highlightColor: "text-slate-900 font-bold",
-                },
-                {
-                  label: "API Access",
-                  included: plan.apiAccess,
-                  highlightColor: "text-slate-900 font-bold",
-                },
-                {
-                  label: "Rate Limiting",
-                  included:
-                    plan.userMessageRateLimit > 0 &&
-                    (isGrowth ||
-                      plan.type.toLowerCase().includes("scale") ||
-                      isEnterprise),
-                  highlightColor: "text-slate-900 font-bold",
-                },
-                {
-                  label:
-                    plan.autoSyncData && isGrowth
-                      ? "Auto Refresh (Monthly)"
-                      : plan.autoSyncData &&
-                          plan.type.toLowerCase().includes("scale")
-                        ? "Auto Refresh (Weekly)"
-                        : plan.autoSyncData && isEnterprise
-                          ? "Priority Support"
-                          : null,
-                  included:
-                    plan.autoSyncData &&
-                    (isGrowth ||
-                      plan.type.toLowerCase().includes("scale") ||
-                      isEnterprise),
-                  highlightColor: isEnterprise
-                    ? "text-emerald-600 font-bold"
-                    : "text-blue-600 font-bold",
-                  underlineDisabled: true,
-                },
-                {
-                  label: plan.type.toLowerCase().includes("scale")
-                    ? "Auto Scan (Daily)"
-                    : isEnterprise
-                      ? "Webhook Support"
+              let featuresList = [];
+
+              if (isEnterprise) {
+                featuresList = [
+                  {
+                    label: "Up to 10,000 chatbots",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    // isBold: true,
+                  },
+                  {
+                    label: "Customizable message volume",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    // isBold: true,
+                  },
+                  {
+                    label: "Up to 500,000 pages",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    // isBold: true,
+                  },
+                  {
+                    label: "Manual Refresh",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    // isBold: true,
+                  },
+                  {
+                    label: "Up to 10,000 team members",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    isBold: true,
+                    isExtraBold: true,
+                  },
+                  {
+                    label: "Integrations with multiple platforms",
+                    included: true,
+                    //highlightColor: "text-emerald-600",
+                    isBold: true,
+                    isExtraBold: true,
+                  },
+                  {
+                    label: "API Access",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    isBold: true,
+                    isExtraBold: true,
+                  },
+                  {
+                    label: "Rate Limiting",
+                    included: true,
+                    // highlightColor: "text-emerald-600",
+                    isBold: true,
+                    isExtraBold: true,
+                  },
+                  {
+                    label: "Auto Refresh (Daily)",
+                    included: true,
+                    highlightColor: "text-emerald-600",
+                    isBold: true,
+                  },
+                  {
+                    label: "Priority Support",
+                    included: true,
+                    highlightColor: "text-emerald-600",
+                    isBold: true,
+                  },
+                  {
+                    label: "Webhook Support",
+                    included: true,
+                    highlightColor: "text-emerald-600",
+                    isBold: true,
+                  },
+                  {
+                    label: "Custom Integrations",
+                    included: true,
+                    highlightColor: "text-emerald-600",
+                    isBold: true,
+                  },
+                  {
+                    label: "Signed DPA on request",
+                    included: true,
+                    highlightColor: "text-emerald-600",
+                    isBold: true,
+                  },
+                  // {
+                  //   label: "HIPAA eligible",
+                  //   included: true,
+                  //   highlightColor: "text-emerald-600",
+                  //   isBold: true,
+                  // },
+                  // {
+                  //   label: "Custom BAA available",
+                  //   included: true,
+                  //   highlightColor: "text-emerald-600",
+                  //   isBold: true,
+                  // },
+                ];
+              } else {
+                featuresList = [
+                  {
+                    label: `${plan.chatbotGiven === -1 || plan.chatbotGiven > 99999 ? "Up to 10,000" : plan.chatbotGiven === 1 ? "1" : "Up to " + plan.chatbotGiven.toLocaleString()} chatbot${plan.chatbotGiven === 1 ? "" : "s"}`,
+                    included: plan.chatbotGiven > 0 || plan.chatbotGiven === -1,
+                    highlightColor: "text-slate-600 font-medium",
+                  },
+                  {
+                    label: `Up to ${plan.messagesSentByAi === -1 || plan.messagesSentByAi > 99999 ? "Customizable message volume" : plan.messagesSentByAi >= 1000 ? plan.messagesSentByAi / 1000 + "k messages per month" : plan.messagesSentByAi + " messages per month"}`,
+                    included:
+                      plan.messagesSentByAi > 0 ||
+                      plan.messagesSentByAi === -1,
+                    highlightColor: "text-slate-600 font-medium",
+                  },
+                  {
+                    label: `Up to ${plan.pagesUpto === -1 || plan.pagesUpto > 99999 ? "500,000" : plan.pagesUpto.toLocaleString()} pages`,
+                    included: plan.pagesUpto > 0 || plan.pagesUpto === -1,
+                    highlightColor: "text-slate-600 font-medium",
+                  },
+                  {
+                    label: "Manual Refresh",
+                    included: true,
+                    highlightColor: "text-slate-600 font-medium",
+                  },
+                  {
+                    label: `${plan.teamMemberAccess === -1 || plan.teamMemberAccess > 99999 ? "Up to 10,000" : plan.teamMemberAccess === 1 ? "1" : "Up to " + plan.teamMemberAccess.toLocaleString()} team member${plan.teamMemberAccess === 1 ? "" : "s"}`,
+                    included:
+                      plan.teamMemberAccess > 0 || plan.teamMemberAccess === -1,
+                    highlightColor: "text-slate-900",
+                    isBold: plan.teamMemberAccess > 1,
+                  },
+                  {
+                    label: "Integrations with multiple platforms",
+                    included:
+                      isGrowth ||
+                      plan.type.toLowerCase().includes("scale"),
+                    highlightColor: "text-slate-900",
+                    isBold: true,
+                  },
+                  {
+                    label: "API Access",
+                    included: plan.apiAccess,
+                    highlightColor: "text-slate-900",
+                    isBold: true,
+                  },
+                  {
+                    label: "Rate Limiting",
+                    included:
+                      plan.conversationLimit == true &&
+                      (isGrowth ||
+                        plan.type.toLowerCase().includes("scale")),
+                    highlightColor: "text-slate-900",
+                    isBold: true,
+                  },                  
+                  {
+                    label: plan.autoRefreshData
+                      ? `Auto Refresh (${plan.autoRefreshDataOccurrence?.charAt(0).toUpperCase() + plan.autoRefreshDataOccurrence?.slice(1) || ""})`
                       : null,
-                  included:
-                    plan.type.toLowerCase().includes("scale") || isEnterprise,
-                  highlightColor: "text-blue-600 font-bold",
-                  underlineDisabled: true,
-                },
-                {
-                  label: isEnterprise
-                    ? "Custom Integrations"
-                    : "Webhook Support",
-                  included:
-                    plan.webhookSupport &&
-                    (plan.type.toLowerCase().includes("scale") || isEnterprise),
-                  highlightColor: isEnterprise
-                    ? "text-emerald-600 font-bold"
-                    : "text-blue-600 font-bold",
-                  underlineDisabled: true,
-                },
-              ];
+                    included: plan.autoRefreshData,
+                    highlightColor: "text-blue-600 font-bold",
+                  },
+                  {
+                    label: plan.autoScanData
+                      ? `Auto Scan (${plan.autoScanDataOccurrence?.charAt(0).toUpperCase() + plan.autoScanDataOccurrence?.slice(1) || "Daily"})`
+                      : null,
+                    included: plan.autoScanData,
+                    highlightColor: "text-blue-600",
+                    isBold: true,
+                  },
+                  {
+                    label: "Webhook Support",
+                    included:
+                      plan.webhookSupport &&
+                      plan.type.toLowerCase().includes("scale"),
+                    highlightColor: "text-blue-600",
+                    isBold: true,
+                  },
+                ];
+              }
 
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col gap-8 rounded-2xl border p-8 transition-shadow hover:shadow-md md:flex-row ${
-                    isCurrent
-                      ? "border-blue-400 bg-blue-50/50 ring-2 ring-blue-200"
-                      : isExpired
-                        ? "border-red-200 bg-red-50/30"
-                        : "border-blue-100 bg-[#fbfbfe]"
+                  id={`plan-${getPlanName(plan.type).toLowerCase()}`}
+                  className={`relative rounded-2xl border p-5 transition-shadow hover:shadow-md sm:p-8 ${
+                    isEnterprise
+                      ? "border-slate-300 bg-slate-50"
+                      : isCurrent
+                        ? "border-blue-400 bg-blue-50/50 ring-2 ring-blue-200"
+                        : isExpired
+                          ? "border-red-200 bg-red-50/30"
+                          : "border-blue-100 bg-white"
                   }`}
                 >
-                  {/* F6: Current plan badge */}
+                  {/* Badges */}
                   {isCurrent && (
                     <div className="absolute -top-3 left-6 rounded-full bg-blue-600 px-3 py-0.5 text-xs font-semibold text-white">
                       {isTrialing ? "On Trial" : "Current Plan"}
@@ -564,134 +677,134 @@ export default function PricingSection() {
                     </div>
                   )}
 
-                  <div className="flex w-full flex-shrink-0 flex-col md:w-[260px] lg:w-[300px]">
-                    <div className="mb-4 flex items-center gap-3">
-                      {getIcon(plan.type)}
-                      <h3 className="text-xl font-bold tracking-tight text-slate-800 capitalize">
-                        {getPlanName(plan.type)}
-                      </h3>
-                    </div>
+                  {/* Top grid: left = name/price/button, right = features */}
+                  <div className="flex flex-col gap-6 md:flex-row md:items-start">
+                    {/* Left: plan info */}
+                    <div className="flex w-full flex-col md:w-[260px] md:shrink-0">
+                      <div className="mb-3 flex items-center gap-3">
+                        {getIcon(plan.type)}
+                        <h3 className="text-xl font-bold tracking-tight text-slate-800 capitalize">
+                          {getPlanName(plan.type)}
+                        </h3>
+                      </div>
 
-                    <div className="my-2 flex flex-col">
-                      {isCustom ? (
-                        <span className="text-[40px] leading-none font-extrabold tracking-tight text-slate-900">
-                          Custom
-                        </span>
-                      ) : (
-                        <>
-                          <div className="flex items-end gap-1">
-                            <span className="text-[40px] leading-none font-extrabold tracking-tight text-slate-900">
-                              ${monthlyPrice}
+                      <div className="flex flex-col">
+                        {isCustom ? (
+                          <span className="text-[36px] leading-none font-extrabold tracking-tight text-slate-900">
+                            Custom
+                          </span>
+                        ) : (
+                          <>
+                            <div className="flex items-end gap-1">
+                              <span className="text-[36px] leading-none font-extrabold tracking-tight text-slate-900">
+                                ${monthlyPrice}
+                              </span>
+                              <span className="mb-1 text-lg font-medium text-slate-500">
+                                /mo
+                              </span>
+                            </div>
+                            {isYearly && (
+                              <p className="mt-1 text-[14px] text-slate-600">
+                                billed{" "}
+                                <span className="font-bold text-slate-900">
+                                  ${yearlyPrice}
+                                </span>{" "}
+                                yearly
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {isDowngradeTarget ? (
+                        <button
+                          onClick={handleCancelDowngrade}
+                          disabled={cancelDowngradeLoading}
+                          className="mt-5 w-full rounded-lg border border-amber-300 bg-amber-50 py-2.5 text-[14px] font-semibold text-amber-700 transition-all hover:bg-amber-100 sm:w-[200px] md:w-full"
+                        >
+                          {cancelDowngradeLoading ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Cancelling...
                             </span>
-                            <span className="mb-1 text-lg font-medium text-slate-500">
-                              /mo
-                            </span>
-                          </div>
-                          {isYearly && (
-                            <p className="mt-1 text-[15px] text-slate-600">
-                              billed{" "}
-                              <span className="font-bold text-slate-900">
-                                ${yearlyPrice}
-                              </span>{" "}
-                              yearly
-                            </p>
+                          ) : (
+                            "Cancel Downgrade"
                           )}
-                        </>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => !isDisabled && handleSubscribe(plan)}
+                          disabled={isDisabled || checkoutLoading === plan.id}
+                          className={`mt-5 w-full rounded-lg py-2.5 text-[14px] font-semibold transition-all sm:w-[200px] md:w-full ${
+                            isDisabled
+                              ? "cursor-not-allowed border border-blue-300 bg-blue-100 text-blue-500"
+                              : checkoutLoading === plan.id
+                                ? "cursor-wait border border-blue-200 bg-blue-50 text-blue-400"
+                                : isExpired
+                                  ? "bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-md"
+                                  : isGrowth
+                                    ? "bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md"
+                                    : "border border-blue-200 bg-white text-blue-600 hover:border-blue-300 hover:bg-blue-50"
+                          } ${highlightedPlan && plan.type.toLowerCase().includes(highlightedPlan) ? "animate-pulse ring-4 ring-blue-400 ring-offset-2" : ""}`}
+                        >
+                          {checkoutLoading === plan.id ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Processing...
+                            </span>
+                          ) : (
+                            buttonLabel
+                          )}
+                        </button>
+                      )}
+                      {hasScheduledDowngrade && (
+                        <button
+                          onClick={handleCancelDowngrade}
+                          disabled={cancelDowngradeLoading}
+                          className="mt-2 text-left text-[13px] font-medium text-amber-600 hover:text-amber-700 hover:underline"
+                        >
+                          {cancelDowngradeLoading ? "Cancelling..." : "Cancel scheduled downgrade"}
+                        </button>
+                      )}
+                      {hasUsedTrial(plan) && getTrialUsedDate(plan) && (
+                        <p className="mt-2 text-[12px] text-slate-400">
+                          Free trial used on {getTrialUsedDate(plan)}
+                        </p>
                       )}
                     </div>
 
-                    {isDowngradeTarget ? (
-                      <button
-                        onClick={handleCancelDowngrade}
-                        disabled={cancelDowngradeLoading}
-                        className="mt-6 w-[220px] rounded-lg border border-amber-300 bg-amber-50 py-2.5 text-[14px] font-semibold text-amber-700 transition-all hover:bg-amber-100"
-                      >
-                        {cancelDowngradeLoading ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Cancelling...
-                          </span>
-                        ) : (
-                          "Cancel Downgrade"
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => !isDisabled && handleSubscribe(plan)}
-                        disabled={isDisabled || checkoutLoading === plan.id}
-                        className={`mt-6 w-[220px] rounded-lg py-2.5 text-[14px] font-semibold transition-all ${
-                          isDisabled
-                            ? "cursor-not-allowed border border-blue-300 bg-blue-100 text-blue-500"
-                            : checkoutLoading === plan.id
-                              ? "cursor-wait border border-blue-200 bg-blue-50 text-blue-400"
-                              : isExpired
-                                ? "bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-md"
-                                : isGrowth
-                                  ? "bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md"
-                                  : "border border-blue-200 bg-white text-blue-600 hover:border-blue-300 hover:bg-blue-50"
-                        }`}
-                      >
-                        {checkoutLoading === plan.id ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Processing...
-                          </span>
-                        ) : (
-                          buttonLabel
-                        )}
-                      </button>
-                    )}
-                    {hasScheduledDowngrade && (
-                      <button
-                        onClick={handleCancelDowngrade}
-                        disabled={cancelDowngradeLoading}
-                        className="mt-2 w-[220px] text-[13px] font-medium text-amber-600 hover:text-amber-700 hover:underline"
-                      >
-                        {cancelDowngradeLoading ? "Cancelling..." : "Cancel scheduled downgrade"}
-                      </button>
-                    )}
-                    {hasUsedTrial(plan) && getTrialUsedDate(plan) && (
-                      <p className="mt-2 text-[12px] text-slate-400">
-                        Free trial used on {getTrialUsedDate(plan)}
+                    {/* Right: features */}
+                    <div className="flex flex-col border-t border-slate-200 pt-5 md:flex-1 md:border-t-0 md:border-l md:pl-8 md:pt-0">
+                      <p className="mb-4 text-[11px] font-bold tracking-widest text-slate-500 uppercase">
+                        INCLUDES:
                       </p>
-                    )}
-                  </div>
-
-                  {/* Features Column */}
-                  <div className="flex w-full flex-col border-t border-slate-200 pt-6 md:ml-4 md:border-t-0 md:pt-0 lg:ml-12">
-                    <p className="mb-5 text-[11px] font-bold tracking-widest text-slate-500 uppercase">
-                      INCLUDES:
-                    </p>
-                    <div className="grid grid-cols-1 gap-x-12 gap-y-4 lg:grid-cols-2">
-                      {featuresList.map((feature, idx) => {
-                        if (!feature.label || !feature.included) return null;
-                        return (
-                          <div
-                            key={idx}
-                            className="group flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-3">
-                              <Check
-                                className="h-4 w-4 flex-shrink-0 text-blue-600"
-                                strokeWidth={2.5}
-                              />
-                              <span
-                                className={`text-[15px] ${feature.highlightColor} ${!feature.underlineDisabled ? "underline decoration-slate-400 decoration-dotted underline-offset-4" : ""}`}
-                                style={
-                                  !feature.underlineDisabled
-                                    ? { textDecorationStyle: "dotted" }
-                                    : {}
-                                }
-                              >
-                                {feature.label}
-                              </span>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:gap-x-10 sm:gap-y-4">
+                        {featuresList.map((feature, idx) => {
+                          if (!feature.label || !feature.included) return null;
+                          return (
+                            <div
+                              key={idx}
+                              className="group flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Check
+                                  className="h-3.5 w-3.5 shrink-0 text-blue-600 sm:h-4 sm:w-4"
+                                  strokeWidth={2.5}
+                                />
+                                <span
+                                  className={`text-[13px] sm:text-[15px] underline decoration-slate-400 decoration-dotted decoration-2 underline-offset-4 ${feature.highlightColor}`}
+                                  style={{ ...(feature.isBold && { fontWeight: 700 }) }}
+                                >
+                                  {feature.label}
+                                </span>
+                              </div>
+                              <div className="ml-1 flex h-4 w-4 shrink-0 cursor-help items-center justify-center rounded-full border border-slate-300 text-[9px] text-slate-400 transition-colors hover:border-slate-400 hover:text-slate-500">
+                                i
+                              </div>
                             </div>
-                            <div className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-slate-300 text-[9px] text-slate-400 transition-colors hover:border-slate-400 hover:text-slate-500">
-                              i
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -702,10 +815,16 @@ export default function PricingSection() {
       </div>
 
       {/* Add-Ons Section */}
+      
       <AddonsSection
         isLoggedIn={isLoggedIn}
         currentSubscription={currentSubscription}
+        isYearly={isYearly}
       />
+      <p className="text-center text-sm mt-4 max-w-[600px] mx-auto text-muted-foreground">
+        Add-Ons are available till their purchased time period, if user ends the subscription and later renews it,
+        and if in that interval the add-ons interval is still left, then under that new subscription also user  can use their remaning quota of the addons
+      </p>
 
       {trialSwitchModal.open && trialSwitchModal.plan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

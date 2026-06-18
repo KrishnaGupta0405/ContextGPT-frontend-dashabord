@@ -1,205 +1,26 @@
+"use client";
+
 import React from "react";
 import { PanelNavbar } from "@/components/navbar/PanelNavbar";
-import {
-  Link as LinkIcon,
-  FileText,
-  Quote,
-  CalendarDays,
-  ThumbsUp,
-  ThumbsDown,
-  LayoutTemplate,
-  Info,
-  ChevronRight,
-  RefreshCw,
-  ExternalLink,
-  Copy,
-  CodeXml,
-} from "lucide-react";
-import Link from "next/link";
+import { RefreshCw, ExternalLink, Copy, CodeXml } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PerformanceFunnel from "./PerformanceFunnel";
-
-export const metadata = {
-  title: "Dashboard | ContextGPT",
-  description: "View your chatbot performance analytics and overview.",
-};
+import { useChatbot } from "@/context/ChatbotContext";
 
 export default function Dashboard() {
+  const { selectedChatbot } = useChatbot();
+  const chatbotId = selectedChatbot?.id ?? "";
   return (
     <>
       <PanelNavbar items={[{ label: "Dashboard" }]} />
       <div className="flex-1 space-y-8 overflow-y-auto p-6 md:p-8">
         {/* DASHBOARD HEADER */}
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-            This page is dummy. Dashboard
-          </h2>
+          <p className="text-5xl font-bold tracking-tight text-slate-900">
+            Dashboard
+          </p>
         </div>
         <PerformanceFunnel />
-        {/* STATS GRID */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Total Links */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <LinkIcon className="h-5 w-5 text-blue-600" />
-                <span className="text-[13px] font-bold text-slate-800">
-                  Total Links
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                36
-              </span>
-              <Link
-                href="/website-links"
-                className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
-              >
-                View All Links{" "}
-                <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Total Files */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <span className="text-[13px] font-bold text-slate-800">
-                  Total Files
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                3
-              </span>
-              <Link
-                href="/website-files"
-                className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
-              >
-                View All Files{" "}
-                <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Total Custom Responses */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Quote className="h-5 w-5 text-blue-600" />
-                <span className="text-[13px] font-bold text-slate-800">
-                  Total Custom Responses
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                4
-              </span>
-              <Link
-                href="/custom-responses"
-                className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
-              >
-                View All Responses{" "}
-                <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Total Messages */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5 text-blue-600" />
-                <span className="text-[13px] font-bold text-slate-800">
-                  Total Messages
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                74
-              </span>
-              <Link
-                href="/chat-history"
-                className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
-              >
-                View Chat History{" "}
-                <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Positive Feedback */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ThumbsUp className="h-5 w-5 fill-green-500 text-green-500" />
-                <span className="text-[13px] font-bold text-slate-800">
-                  Positive Feedback
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                8.1%
-              </span>
-              <Link
-                href="#"
-                className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
-              >
-                View Feedback{" "}
-                <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Negative Feedback */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ThumbsDown className="h-5 w-5 fill-red-500 text-red-500" />
-                <span className="text-[13px] font-bold text-slate-800">
-                  Negative Feedback
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                2.7%
-              </span>
-              <Link
-                href="#"
-                className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
-              >
-                View Feedback{" "}
-                <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Total Pages Consumed */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <LayoutTemplate className="h-5 w-5 text-blue-600" />
-                <span className="flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
-                  Total Pages Consumed
-                  <Info className="h-3.5 w-3.5 text-slate-400" />
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
-                348
-              </span>
-            </div>
-          </div>
-        </div>
 
         <hr className="my-8 border-slate-100" />
 
@@ -255,10 +76,10 @@ export default function Dashboard() {
               </p>
               <div className="flex items-center gap-4">
                 <div className="rounded-md bg-[#dce6f6] px-3.5 py-1.5 font-mono text-[13.5px] text-blue-800">
-                  93ab558e-8c8d-415e-8355-0fe0c1df4bb2
+                  {chatbotId}
                 </div>
-                <button className="flex items-center text-[13.5px] font-bold text-blue-600 transition-colors hover:text-blue-800">
-                  <Copy className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.5} /> Copy
+                <button className="flex items-center gap-1.5 rounded-md border border-blue-200 bg-white px-2.5 py-1 text-[13px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800">
+                  <Copy className="h-3.5 w-3.5" strokeWidth={2.5} /> Copy
                 </button>
               </div>
             </div>
@@ -277,16 +98,11 @@ export default function Dashboard() {
               </p>
 
               <div className="relative mt-2 rounded-[8px] bg-[#dce6f6] p-4 font-mono text-[13.5px] text-blue-800">
-                <button className="absolute top-4 right-4 flex items-center font-sans text-[13.5px] font-bold text-blue-600 transition-colors hover:text-blue-800">
-                  <Copy className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.5} /> Copy
+                <button className="absolute top-4 right-4 flex items-center gap-1.5 rounded-md border border-blue-200 bg-white px-2.5 py-1 font-sans text-[13px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800">
+                  <Copy className="h-3.5 w-3.5" strokeWidth={2.5} /> Copy
                 </button>
                 <div className="max-w-[85%] leading-relaxed select-all">
-                  &lt;script
-                  type=&quot;text/javascript&quot;&gt;window.$contextGPT=[];(function()
-                  <br />
-                  &#123;d=document;s=d.createElement(&quot;script&quot;);s.src=&quot;https://contextGPT.ai/widget/93ab558e-8c8d-415e-8355-
-                  <br />
-                  0fe0c1df4bb2.js&quot;;s.async=1;d.getElementsByTagName(&quot;head&quot;)[0].appendChild(s);&#125;)();&lt;/script&gt;
+                  {`<script type="module" src="https://contextgpt-widget-testing.vercel.app/loader.js" data-chatbot-id="${chatbotId}"></script>`}
                 </div>
               </div>
             </div>

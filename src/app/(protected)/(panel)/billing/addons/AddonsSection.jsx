@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Loader2, MessageSquare, Sparkles } from "lucide-react";
+import { MessageSquare, Sparkles } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import AddonCard from "./AddonCard";
@@ -16,7 +17,7 @@ import AddonCard from "./AddonCard";
  *   isLoggedIn - Whether the user is logged in (pass from parent)
  *   currentSubscription - Optional: user's current subscription (to show quota info)
  */
-export default function AddonsSection({ isLoggedIn, currentSubscription }) {
+export default function AddonsSection({ isLoggedIn, currentSubscription, isYearly }) {
   const [addOns, setAddOns] = useState([]);
   const [myAddOns, setMyAddOns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +28,7 @@ export default function AddonsSection({ isLoggedIn, currentSubscription }) {
       try {
         const res = await api.get("/billing/addons");
         if (res.data?.success) {
+          console.log(res.data.data)
           setAddOns(res.data.data.addOns || []);
         }
       } catch (err) {
@@ -83,13 +85,43 @@ export default function AddonsSection({ isLoggedIn, currentSubscription }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+      <div className="mt-16 border-t border-slate-200 pt-16">
+        <div className="mb-8 text-center space-y-2">
+          <Skeleton className="mx-auto h-7 w-48" />
+          <Skeleton className="mx-auto h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+              <div className="flex items-start gap-3">
+                <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-12 w-full" />
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-9 w-24 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!addOns.length) return null;
+
+  const filteredAddons = isYearly === undefined
+    ? addOns
+    : addOns.filter((addon) => {
+        const type = (addon.type || "").trim().toLowerCase();
+        return isYearly ? type === "yearly" : type === "monthly";
+      });
+
+  if (!filteredAddons.length) return null;
 
   return (
     <>
@@ -107,7 +139,7 @@ export default function AddonsSection({ isLoggedIn, currentSubscription }) {
 
         {/* Add-On Cards Grid */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {addOns.map((addon) => (
+          {filteredAddons.map((addon) => (
             <AddonCard
               key={addon.id}
               addon={addon}

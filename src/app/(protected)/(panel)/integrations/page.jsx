@@ -16,7 +16,9 @@ import {
   Check,
   Copy,
   Info,
+  Lock,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,9 +65,10 @@ const PLATFORMS = [
 
 // ─── Main component ──────────────────────────────────────────────────────────
 const IntegrationPage = () => {
-  const { account } = useAuth();
+  const { account, subscription } = useAuth();
   const { selectedChatbot } = useChatbot();
   const searchParams = useSearchParams();
+
 
   const [activeIntegrations, setActiveIntegrations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -322,20 +325,16 @@ const IntegrationPage = () => {
             Integrations
           </h1>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {PLATFORMS.map((platform) => {
                 const active = getActiveIntegration(platform.key);
                 const isConnected = !!active?.isConnected;
+                const isLocked = !subscription?.platformIntegrationAllowed && platform.key !== "PERSONAL_WEBSITE";
 
                 return (
                   <div
                     key={platform.key}
-                    className="flex flex-col justify-between overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                    className={`relative flex flex-col justify-between overflow-hidden rounded-xl border bg-white shadow-sm transition-shadow ${isLocked ? "border-slate-200 opacity-60" : "border-slate-200 hover:shadow-md"}`}
                   >
                     <div className="p-5 pb-4">
                       <div className="mb-3 flex items-start justify-between">
@@ -377,19 +376,26 @@ const IntegrationPage = () => {
                             </a>
                           </div>
                         </div>
-                        {isConnected && (
+                        {isLoading && !isLocked ? (
+                          <Skeleton className="h-5 w-20 rounded-full" />
+                        ) : isConnected ? (
                           <Badge
                             variant="secondary"
                             className="border-emerald-200 bg-emerald-50 text-emerald-700"
                           >
                             Connected
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
                       <p className="text-[13px] leading-[1.6] text-slate-600">
                         {platform.description}
                       </p>
-                      {isConnected && platform.usesAllowedDomains && active?.allowedDomains?.length > 0 && (
+                      {isLoading && !isLocked && platform.usesAllowedDomains ? (
+                        <div className="mt-2 flex gap-1">
+                          <Skeleton className="h-4 w-20 rounded-full" />
+                          <Skeleton className="h-4 w-24 rounded-full" />
+                        </div>
+                      ) : isConnected && platform.usesAllowedDomains && active?.allowedDomains?.length > 0 ? (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {active.allowedDomains.map((d) => (
                             <span
@@ -400,11 +406,22 @@ const IntegrationPage = () => {
                             </span>
                           ))}
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
+                    {isLocked && (
+                      <div className="absolute inset-0 z-10 flex cursor-not-allowed items-center justify-center rounded-xl bg-white/60" />
+                    )}
+
                     <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3">
-                      {isConnected ? (
+                      {isLocked ? (
+                        <span className="flex items-center gap-1.5 text-[13px] font-medium text-slate-400">
+                          <Lock className="h-3.5 w-3.5" />
+                          Available on Growth, Scale &amp; Enterprise plans
+                        </span>
+                      ) : isLoading ? (
+                        <Skeleton className="h-4 w-24" />
+                      ) : isConnected ? (
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Switch
@@ -468,7 +485,6 @@ const IntegrationPage = () => {
                 );
               })}
             </div>
-          )}
         </div>
       </div>
 

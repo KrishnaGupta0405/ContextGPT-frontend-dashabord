@@ -1,8 +1,11 @@
+"use client";
+
 import React from "react";
 import { PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccountMembers } from "./AccountMembers";
 import { OutgoingAccountInvitations, IncomingAccountInvitations } from "./AccountInvitations";
+import { MemberUsageBadge } from "./MemberUsageBadge";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -36,6 +39,7 @@ const AccountMembersPage = () => {
             Updating a member's role will apply across all chatbots in your account.
           </p>
         </div>
+        <MemberUsageBadge />
       </div>
 
       <div className="min-h-[600px] flex-1 overflow-hidden rounded-lg border bg-white shadow-sm">

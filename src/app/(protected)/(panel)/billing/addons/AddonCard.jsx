@@ -7,13 +7,24 @@ import api from "@/lib/axios";
 
 // Frontend descriptions per add-on identifier
 const ADDON_DESCRIPTIONS = {
-  remove_branding: "Hide the 'Powered by ContextGPT' watermark on all your chatbots for the purchased period.",
-  extra_messages_5k: "Add 5,000 bonus AI messages per month. For yearly purchase, 5k is credited each month for 12 months. Unused messages carry forward.",
+  remove_branding: {
+    monthly: "Hide the 'Powered by ContextGPT' watermark on all your chatbots for the purchased month.",
+    yearly: "Hide the 'Powered by ContextGPT' watermark on all your chatbots for the entire year.",
+  },
+  extra_messages_5k: {
+    monthly: "Add 5,000 bonus AI messages to your quota for this month. Unused messages carry forward.",
+    yearly: "5,000 messages credited to your account each month for 12 months. Unused messages carry forward automatically.",
+  },
+  extra_pages_5k: {
+    monthly: "Add 5,000 bonus pages to your quota for this month. Unused pages carry forward.",
+    yearly: "5,000 pages credited to your account each month for 12 months. Unused pages carry forward automatically.",
+  },
 };
 
 const ADDON_ICONS = {
   remove_branding: Tag,
   extra_messages_5k: Zap,
+  extra_pages_5k: Zap,
 };
 
 /**
@@ -33,7 +44,10 @@ export default function AddonCard({ addon, purchaseCount = 0, isLoggedIn, onBuyS
   const isMaxed = purchaseCount >= MAX_PURCHASES;
   const Icon = ADDON_ICONS[addon.identifier] || Zap;
 
-  const description = ADDON_DESCRIPTIONS[addon.identifier] || addon.title;
+  const descMap = ADDON_DESCRIPTIONS[addon.identifier];
+  const description = descMap
+    ? (addon.type === "Yearly" ? descMap.yearly : descMap.monthly)
+    : addon.title;
   const periodLabel = addon.type === "Yearly" ? "/ year" : "/ month";
   const price = parseFloat(addon.price || 0).toFixed(2);
 
@@ -117,9 +131,11 @@ export default function AddonCard({ addon, purchaseCount = 0, isLoggedIn, onBuyS
 
         {/* Purchase count badge */}
         {purchaseCount > 0 && (
-          <div className="mb-3 flex items-center gap-1.5 text-sm text-emerald-600">
-            <Check className="h-4 w-4" />
-            <span>{purchaseCount} active purchase{purchaseCount > 1 ? "s" : ""}</span>
+          <div className="mb-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+              <Check className="h-3.5 w-3.5" />
+              {purchaseCount} active purchase{purchaseCount > 1 ? "s" : ""}
+            </span>
           </div>
         )}
 

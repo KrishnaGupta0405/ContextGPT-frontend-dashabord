@@ -10,6 +10,7 @@ import { useChatbot } from "@/context/ChatbotContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
 import { Textarea } from "@/components/ui/textarea";
 import { PlayCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -142,8 +143,89 @@ const AdvanceTab = () => {
       </div>
 
       {isLoading ? (
-        <div className="py-20 text-center text-slate-500">
-          Loading settings...
+        <div className="space-y-12 pb-10">
+          {/* Widget Visibility section */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Widget Visibility</h2>
+              <p className="text-sm text-slate-500">Show or hide specific UI elements inside the chat widget.</p>
+            </div>
+            <div className="max-w-3xl rounded-lg border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+              {[
+                "Hide Sources",
+                "Hide Tooltip",
+                "Hide Feedback Buttons",
+                "Hide Bottom Navigation",
+                "Hide Refresh Button",
+                "Hide Expand Button",
+              ].map((label) => (
+                <div key={label} className="flex items-center justify-between px-5 py-4">
+                  <Label className="font-semibold text-slate-700">{label}</Label>
+                  <Skeleton className="h-6 w-11 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <hr className="border-slate-200" />
+
+          {/* Behavior Rules section */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Behavior Rules</h2>
+              <p className="text-sm text-slate-500">Configure auto-open delays and content limits.</p>
+            </div>
+            <div className="max-w-3xl rounded-lg border border-slate-200 p-6">
+              <div className="grid grid-cols-2 gap-8 border-b border-slate-100 pb-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-semibold text-slate-700">Auto Open (Desktop)</Label>
+                    <Skeleton className="h-6 w-11 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[13px] text-slate-600">Desktop Delay (seconds)</Label>
+                    <Skeleton className="h-10 w-[150px]" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-semibold text-slate-700">Auto Open (Mobile)</Label>
+                    <Skeleton className="h-6 w-11 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[13px] text-slate-600">Mobile Delay (seconds)</Label>
+                    <Skeleton className="h-10 w-[150px]" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 pt-6">
+                <Label className="font-semibold text-slate-700">Smart Follow-Up Prompts Count</Label>
+                <Skeleton className="h-10 w-[200px]" />
+              </div>
+            </div>
+          </section>
+
+          <hr className="border-slate-200" />
+
+          {/* Privacy & Legal section */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Privacy & Legal</h2>
+              <p className="text-sm text-slate-500">Settings related to terms and app home page.</p>
+            </div>
+            <div className="max-w-3xl rounded-lg border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+              {[
+                "Hide Home Page",
+                "Stay on Home Page (No Auto-Redirect)",
+                "Require Terms Acceptance",
+              ].map((label) => (
+                <div key={label} className="flex items-center justify-between px-5 py-4">
+                  <Label className="font-semibold text-slate-700">{label}</Label>
+                  <Skeleton className="h-6 w-11 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       ) : (
         <div className="space-y-12 pb-10">

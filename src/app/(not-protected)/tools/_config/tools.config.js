@@ -30,9 +30,9 @@ export const ALL_TOOLS = [
     acceptedFileTypes: ".pdf",
     fileHint: ".pdf format supported, up to 10 MB.",
     actionLabel: "Convert to Markdown",
-    icon: "📄",
     bgColor: "bg-red-50",
     iconBg: "bg-red-100",
+    image: "/tools/Convert-to-Md/pdf-to-md_converted.avif",
   },
   {
     slug: "convert-docx-to-markdown",
@@ -45,9 +45,9 @@ export const ALL_TOOLS = [
     acceptedFileTypes: ".docx,.doc",
     fileHint: ".docx / .doc format supported, up to 10 MB.",
     actionLabel: "Convert to Markdown",
-    icon: "📝",
     bgColor: "bg-blue-50",
     iconBg: "bg-blue-100",
+    image: "/tools/Convert-to-Md/DOCX_to_Md_converted.avif",
   },
   {
     slug: "convert-html-to-markdown",
@@ -60,9 +60,9 @@ export const ALL_TOOLS = [
     acceptedFileTypes: ".html,.htm",
     fileHint: ".html format supported, up to 2 MB.",
     actionLabel: "Convert to Markdown",
-    icon: "🌐",
     bgColor: "bg-orange-50",
     iconBg: "bg-orange-100",
+    image: "/tools/Convert-to-Md/html-to-md_converted.avif",
   },
   {
     slug: "convert-notion-to-markdown",
@@ -76,9 +76,9 @@ export const ALL_TOOLS = [
     inputPlaceholder: "https:/notion.so/your-page-id",
     inputHint: "The Notion page must be publicly shared.",
     actionLabel: "Convert to Markdown",
-    icon: "🗒️",
     bgColor: "bg-gray-50",
     iconBg: "bg-gray-100",
+    image: "/tools/Convert-to-Md/Notion_to_Md_converted.avif",
   },
   {
     slug: "convert-google-docs-to-markdown",
@@ -92,9 +92,9 @@ export const ALL_TOOLS = [
     inputPlaceholder: "https:/docs.google.com/document/d/...",
     inputHint: "Document must be shared with 'Anyone with the link'.",
     actionLabel: "Convert to Markdown",
-    icon: "📃",
     bgColor: "bg-green-50",
     iconBg: "bg-green-100",
+    image: "/tools/Convert-to-Md/Google_Docs_to_Md_converted.avif",
   },
   {
     slug: "convert-xml-to-markdown",
@@ -108,9 +108,10 @@ export const ALL_TOOLS = [
     inputPlaceholder:
       '<?xml version="1.0"?>\n<root>\n  <item>...</item>\n</root>',
     actionLabel: "Convert to Markdown",
-    icon: "🔖",
     bgColor: "bg-purple-50",
     iconBg: "bg-purple-100",
+    image:
+      "/tools/Convert-to-Md/XML_to_Markdown_conversion_icon_202606161024_converted.avif",
   },
   {
     slug: "convert-csv-to-markdown",
@@ -123,9 +124,9 @@ export const ALL_TOOLS = [
     inputLabel: "Paste your CSV data here",
     inputPlaceholder: "Name,Age,City\nAlice,30,New York\nBob,25,London",
     actionLabel: "Convert to Markdown Table",
-    icon: "📊",
     bgColor: "bg-emerald-50",
     iconBg: "bg-emerald-100",
+    image: "/tools/Convert-to-Md/CSV-to-Md_converted.avif",
   },
   {
     slug: "convert-json-to-markdown",
@@ -138,9 +139,9 @@ export const ALL_TOOLS = [
     inputLabel: "Paste your JSON here",
     inputPlaceholder: '{\n  "name": "Alice",\n  "age": 30\n}',
     actionLabel: "Convert to Markdown",
-    icon: "{ }",
     bgColor: "bg-yellow-50",
     iconBg: "bg-yellow-100",
+    image: "/tools/Convert-to-Md/JSON_to_Markdown_converted.avif",
   },
   {
     slug: "convert-rtf-to-markdown",
@@ -153,9 +154,9 @@ export const ALL_TOOLS = [
     acceptedFileTypes: ".rtf",
     fileHint: ".rtf format supported, up to 5 MB.",
     actionLabel: "Convert to Markdown",
-    icon: "📋",
     bgColor: "bg-rose-50",
     iconBg: "bg-rose-100",
+    image: "/tools/Convert-to-Md/RTF_to_Md_converted.avif",
   },
   {
     slug: "convert-paste-to-markdown",
@@ -168,9 +169,9 @@ export const ALL_TOOLS = [
     inputLabel: "Paste your text here",
     inputPlaceholder: "Paste any text or HTML here...",
     actionLabel: "Convert to Markdown",
-    icon: "📋",
     bgColor: "bg-teal-50",
     iconBg: "bg-teal-100",
+    image: "/tools/Convert-to-Md/Paste-to-Md_converted.avif",
   },
   {
     slug: "convert-webpage-to-markdown",
@@ -184,9 +185,9 @@ export const ALL_TOOLS = [
     inputPlaceholder: "https:/example.com/article",
     inputHint: "The URL must be publicly accessible.",
     actionLabel: "Convert to Markdown",
-    icon: "🔗",
     bgColor: "bg-cyan-50",
     iconBg: "bg-cyan-100",
+    image: "/tools/Convert-to-Md/Webpage_to_Md_converted.avif",
   },
 
   // -------------------------------------------------------------------------
@@ -201,9 +202,9 @@ export const ALL_TOOLS = [
     toolType: TOOL_TYPES.AI_CHAT,
     chatMode: "text",
     apiEndpoint: "tools/chat/text",
-    icon: "💬",
     bgColor: "bg-blue-50",
     iconBg: "bg-blue-100",
+    image: "/tools/ai-chat-with-data/AI_chat_with_text_data_converted.avif",
   },
   {
     slug: "ai-chat-website-data",
@@ -214,9 +215,9 @@ export const ALL_TOOLS = [
     toolType: TOOL_TYPES.AI_CHAT,
     chatMode: "website",
     apiEndpoint: "tools/chat/website",
-    icon: "🌐",
     bgColor: "bg-indigo-50",
     iconBg: "bg-indigo-100",
+    image: "/tools/ai-chat-with-data/AI_chat_website_data_converted.avif",
   },
   {
     slug: "ai-chat-document-data",
@@ -229,9 +230,10 @@ export const ALL_TOOLS = [
     apiEndpoint: "tools/chat/document",
     acceptedFileTypes: ".txt,.md,.csv",
     fileHint: ".txt, .md, .csv supported, up to 5 MB.",
-    icon: "📁",
     bgColor: "bg-violet-50",
     iconBg: "bg-violet-100",
+    image:
+      "/tools/ai-chat-with-data/AI_chat_with_CSV_data_202606161039_converted.avif",
   },
   {
     slug: "ai-chat-pdf-data",
@@ -244,9 +246,9 @@ export const ALL_TOOLS = [
     apiEndpoint: "tools/chat/pdf",
     acceptedFileTypes: ".pdf",
     fileHint: ".pdf format supported, up to 10 MB.",
-    icon: "📄",
     bgColor: "bg-red-50",
     iconBg: "bg-red-100",
+    image: "/tools/ai-chat-with-data/AI_chat_PDF_converted.avif",
   },
   {
     slug: "ai-chat-word-data",
@@ -259,9 +261,9 @@ export const ALL_TOOLS = [
     apiEndpoint: "tools/chat/word",
     acceptedFileTypes: ".docx,.doc",
     fileHint: ".docx / .doc supported, up to 10 MB.",
-    icon: "📝",
     bgColor: "bg-sky-50",
     iconBg: "bg-sky-100",
+    image: "/tools/ai-chat-with-data/AI_chat_with_Docx_converted.avif",
   },
 
   // -------------------------------------------------------------------------
@@ -301,9 +303,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Reply",
     outputLabel: "Generated Reply",
-    icon: "↩️",
     bgColor: "bg-blue-50",
     iconBg: "bg-blue-100",
+    image: "/tools/ai-generator/AI_reply_generator_converted.avif",
   },
   {
     slug: "ai-prompt-generator",
@@ -339,9 +341,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Prompt",
     outputLabel: "Generated Prompt",
-    icon: "✨",
     bgColor: "bg-purple-50",
     iconBg: "bg-purple-100",
+    image: "/tools/ai-generator/AI_prompt_generator_converted.avif",
   },
   {
     slug: "ai-prompt-optimizer",
@@ -363,9 +365,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Optimize Prompt",
     outputLabel: "Optimized Prompt + Improvements",
-    icon: "⚡",
     bgColor: "bg-amber-50",
     iconBg: "bg-amber-100",
+    image: "/tools/ai-generator/AI_Prompt_Optimizer_converted.avif",
   },
   {
     slug: "ai-faq-generator",
@@ -401,9 +403,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate FAQs",
     outputLabel: "Generated FAQs",
-    icon: "❓",
     bgColor: "bg-teal-50",
     iconBg: "bg-teal-100",
+    image: "/tools/ai-generator/AI_FAQ_Generator_converted.avif",
   },
   {
     slug: "ai-answer-generator",
@@ -439,9 +441,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Answer",
     outputLabel: "Generated Answer",
-    icon: "💡",
     bgColor: "bg-yellow-50",
     iconBg: "bg-yellow-100",
+    image: "/tools/ai-generator/ai_answer_generator_converted.avif",
   },
   {
     slug: "ai-email-response-generator",
@@ -483,9 +485,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Email Response",
     outputLabel: "Generated Email Response",
-    icon: "📧",
     bgColor: "bg-sky-50",
     iconBg: "bg-sky-100",
+    image: "/tools/ai-generator/AI_Email_generator_converted.avif",
   },
   {
     slug: "ai-letter-generator",
@@ -544,9 +546,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Letter",
     outputLabel: "Generated Letter",
-    icon: "✉️",
     bgColor: "bg-indigo-50",
     iconBg: "bg-indigo-100",
+    image: "/tools/ai-generator/ai_email_generator2_converted.avif",
   },
   {
     slug: "ai-blog-title-generator",
@@ -582,9 +584,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Blog Titles",
     outputLabel: "Generated Blog Titles",
-    icon: "📰",
     bgColor: "bg-rose-50",
     iconBg: "bg-rose-100",
+    image: "/tools/ai-generator/ai_blog_title_generator_converted.avif",
   },
   {
     slug: "ai-chatbot-name-generator",
@@ -627,9 +629,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Chatbot Names",
     outputLabel: "Generated Chatbot Names",
-    icon: "🤖",
     bgColor: "bg-cyan-50",
     iconBg: "bg-cyan-100",
+    image: "/tools/ai-generator/ai_chatbot_name_generator_converted.avif",
   },
   {
     slug: "ai-saas-brand-name-generator",
@@ -672,9 +674,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Generate Brand Names",
     outputLabel: "Generated Brand Names",
-    icon: "🚀",
     bgColor: "bg-violet-50",
     iconBg: "bg-violet-100",
+    image: "/tools/ai-generator/ai_saas_brand_name_generator_converted.avif",
   },
 
   // -------------------------------------------------------------------------
@@ -701,9 +703,9 @@ export const ALL_TOOLS = [
     ],
     actionLabel: "Analyze Conversation",
     outputLabel: "Conversation Analysis",
-    icon: "📊",
     bgColor: "bg-blue-50",
     iconBg: "bg-blue-100",
+    image: "/tools/other tools/ai_chatbot_analysis_converted.avif",
   },
   {
     slug: "sitemap-finder-checker",
@@ -717,9 +719,9 @@ export const ALL_TOOLS = [
     inputLabel: "Website URL",
     inputPlaceholder: "https:/example.com",
     actionLabel: "Find Sitemaps",
-    icon: "🗺️",
     bgColor: "bg-green-50",
     iconBg: "bg-green-100",
+    image: "/tools/other tools/sitemap_finder_and checker_converted.avif",
   },
   {
     slug: "sitemap-validator",
@@ -733,9 +735,9 @@ export const ALL_TOOLS = [
     inputLabel: "Sitemap URL",
     inputPlaceholder: "https:/example.com/sitemap.xml",
     actionLabel: "Validate Sitemap",
-    icon: "✅",
     bgColor: "bg-emerald-50",
     iconBg: "bg-emerald-100",
+    image: "/tools/other tools/sitemap_validator_converted.avif",
   },
   {
     slug: "xml-sitemap-generator",
@@ -749,9 +751,9 @@ export const ALL_TOOLS = [
     inputLabel: "Website URL",
     inputPlaceholder: "https:/example.com",
     actionLabel: "Generate XML Sitemap",
-    icon: "🗂️",
     bgColor: "bg-orange-50",
     iconBg: "bg-orange-100",
+    image: "/tools/other tools/xml_sitemap_generator_converted.avif",
   },
   {
     slug: "sitemap-url-extractor",
@@ -765,9 +767,9 @@ export const ALL_TOOLS = [
     inputLabel: "Sitemap URL",
     inputPlaceholder: "https:/example.com/sitemap.xml",
     actionLabel: "Extract URLs",
-    icon: "🔗",
     bgColor: "bg-teal-50",
     iconBg: "bg-teal-100",
+    image: "/tools/other tools/sitemap_url_extracto_converted.avif",
   },
   {
     slug: "website-url-extractor",
@@ -781,9 +783,9 @@ export const ALL_TOOLS = [
     inputLabel: "Website URL",
     inputPlaceholder: "https:/example.com",
     actionLabel: "Extract URLs",
-    icon: "🕸️",
     bgColor: "bg-purple-50",
     iconBg: "bg-purple-100",
+    image: "/tools/other tools/website_url_extractor_converted.avif",
   },
   {
     slug: "chatbot-roi-calculator",
@@ -792,9 +794,9 @@ export const ALL_TOOLS = [
     description:
       "Calculate the return on investment of deploying an AI chatbot for your business. Enter your numbers and see potential savings and revenue gains. Free.",
     toolType: TOOL_TYPES.ROI_CALCULATOR,
-    icon: "💰",
     bgColor: "bg-yellow-50",
     iconBg: "bg-yellow-100",
+    image: "/tools/other tools/chatbot_roi_calculator_converted.avif",
   },
   {
     slug: "email-signature-generator",
@@ -803,9 +805,9 @@ export const ALL_TOOLS = [
     description:
       "Create a professional HTML email signature in seconds. Fill in your details, choose a style, and copy the HTML. Free to use. No sign up required.",
     toolType: TOOL_TYPES.EMAIL_SIGNATURE,
-    icon: "✍️",
     bgColor: "bg-rose-50",
     iconBg: "bg-rose-100",
+    image: "/tools/other tools/email_signature_generator_converted.avif",
   },
 ];
 

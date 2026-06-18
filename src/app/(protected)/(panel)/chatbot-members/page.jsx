@@ -1,8 +1,11 @@
+"use client";
+
 import React from "react";
 import { PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatbotMembers } from "./ChatbotMembers";
 import { OutgoingInvitations, IncomingInvitations } from "./Invitations";
+import { MemberUsageBadge } from "../account-members/MemberUsageBadge";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -32,6 +35,7 @@ const MembersPage = () => {
             Manage members and set their access level in your chatbot.
           </p>
         </div>
+        <MemberUsageBadge />
       </div>
 
       <div className="min-h-[600px] flex-1 overflow-hidden rounded-lg border bg-white shadow-sm">

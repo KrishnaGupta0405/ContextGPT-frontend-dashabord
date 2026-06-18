@@ -1,5 +1,5 @@
 import React from "react";
-import Image from "next/image";
+// import Image from "next/image";
 
 const features = [
 {
@@ -52,7 +52,7 @@ export default function HowItWorksSection() {
               className="flex flex-col border border-gray-200 rounded-[1.2rem] bg-white overflow-hidden max-h-[28rem]"
             >
               <div className={`flex-1 flex items-center justify-center min-h-[16rem]`}>
-                <Image
+                <img
                   src={feature.image}
                   alt={feature.title}
                   width={400}

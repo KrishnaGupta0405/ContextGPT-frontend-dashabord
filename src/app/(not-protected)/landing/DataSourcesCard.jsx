@@ -14,7 +14,6 @@ import {
   SharePointIcon,
   LocalUploadIcon
 } from '../../../../public/icons/IconSvg.js'
-import Image from 'next/image.js'
 
 // wave: radius index (0=near, 1=mid, 2=far)
 // angle: 0°=left edge, 90°=straight down, 180°=right edge
@@ -57,7 +56,7 @@ const DataSourcesCard = () => {
             left: '50%',
           }}
         >
-          <Image
+          <img
             src="/icons/Contextgpt_icon.svg"
             alt="Contextgpt"
             width={90}

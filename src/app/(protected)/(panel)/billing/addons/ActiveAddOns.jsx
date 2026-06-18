@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Loader2, Zap, Tag, ChevronRight, Package } from "lucide-react";
+import { Zap, Tag, Package } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/axios";
 
 const ADDON_ICONS = {
@@ -56,8 +57,23 @@ export default function ActiveAddOns() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-8">
-        <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-6 py-4">
+          <Skeleton className="h-5 w-24 mb-1" />
+          <Skeleton className="h-3 w-48" />
+        </div>
+        <ul className="divide-y divide-slate-100">
+          {[1, 2].map((i) => (
+            <li key={i} className="flex items-start gap-3 px-6 py-4">
+              <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+              <Skeleton className="h-4 w-16 shrink-0" />
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }

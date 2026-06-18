@@ -28,6 +28,7 @@ import {
   Check,
   Edit2,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Schema for Instruction forms
 const formSchema = z.object({
@@ -176,11 +177,13 @@ const InstructionsTab = () => {
     defaultValues,
   });
 
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
+
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchInstructions();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   useEffect(() => {
     return () => markClean();
@@ -395,14 +398,6 @@ const InstructionsTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-5xl pb-24">
       {/* Default Instructions Section */}
@@ -448,36 +443,48 @@ const InstructionsTab = () => {
         </div>
 
         <div className="w-full md:col-span-3">
-          {/* List of Custom Instructions */}
-          {!isEditingCustom &&
-            instructions.map((instruction) => (
-              <InstructionCard
-                key={instruction.id}
-                instruction={instruction}
-                isSelected={selectedInstructionId === instruction.id}
-                onSelect={(p) => { setSelectedInstructionId(p.id); markDirty(); }}
-                isExpanded={expandedCardId === instruction.id}
-                onToggleExpand={() =>
-                  setExpandedCardId(
-                    expandedCardId === instruction.id ? null : instruction.id,
-                  )
-                }
-                onEdit={handleEditCustom}
-                onDelete={handleDeleteCustom}
-              />
-            ))}
-
-          {!isEditingCustom && (
-            <div className="mb-6">
-              <Button
-                variant="outline"
-                onClick={handleAddNewCustom}
-                className="h-10 w-full justify-start rounded-[8px] bg-white px-4 text-left font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Add New Instructions
-              </Button>
+          {initialLoading ? (
+            <div className="mb-4 rounded-[10px] border border-gray-200 bg-white p-5">
+              <div className="flex items-start gap-4">
+                <Skeleton className="mt-0.5 h-[18px] w-[18px] rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="mt-2 h-3 w-20" />
+                </div>
+              </div>
             </div>
-          )}
+          ) : (
+            <>
+              {/* List of Custom Instructions */}
+              {!isEditingCustom &&
+                instructions.map((instruction) => (
+                  <InstructionCard
+                    key={instruction.id}
+                    instruction={instruction}
+                    isSelected={selectedInstructionId === instruction.id}
+                    onSelect={(p) => { setSelectedInstructionId(p.id); markDirty(); }}
+                    isExpanded={expandedCardId === instruction.id}
+                    onToggleExpand={() =>
+                      setExpandedCardId(
+                        expandedCardId === instruction.id ? null : instruction.id,
+                      )
+                    }
+                    onEdit={handleEditCustom}
+                    onDelete={handleDeleteCustom}
+                  />
+                ))}
+
+              {!isEditingCustom && (
+                <div className="mb-6">
+                  <Button
+                    variant="outline"
+                    onClick={handleAddNewCustom}
+                    className="h-10 w-full justify-start rounded-[8px] bg-white px-4 text-left font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Add New Instructions
+                  </Button>
+                </div>
+              )}
 
           {/* Form for Creating/Editing Custom Instruction */}
           {isEditingCustom && (
@@ -577,6 +584,8 @@ const InstructionsTab = () => {
                 </form>
               </Form>
             </div>
+          )}
+            </>
           )}
         </div>
       </div>

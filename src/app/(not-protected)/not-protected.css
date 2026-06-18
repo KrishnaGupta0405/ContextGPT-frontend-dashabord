@@ -24,12 +24,10 @@
 }
 
 /* Paragraph styles */
-.not-protected-layout p,
-.not-protected-layout body,
-.not-protected-layout span,
-.not-protected-layout div {
+/* .not-protected-layout p,
+.not-protected-layout body {
   font-weight: 400;
-}
+} */
 
 /* Additional text elements */
 .not-protected-layout li,

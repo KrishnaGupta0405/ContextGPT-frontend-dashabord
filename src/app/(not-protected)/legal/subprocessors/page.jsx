@@ -2,7 +2,17 @@ import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Subprocessors | ContextGPT",
+  title: "ContextGPT | Subprocessors",
+  description: "List of third-party subprocessors used by ContextGPT to deliver its services.",
+  alternates: { canonical: "https://contextgpt.com/legal/subprocessors" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "ContextGPT",
+    title: "ContextGPT | Subprocessors",
+    description: "List of third-party subprocessors used by ContextGPT.",
+    url: "https://contextgpt.com/legal/subprocessors",
+  },
 };
 
 export default function Subprocesses() {
@@ -18,11 +28,11 @@ export default function Subprocesses() {
               width={180}
               className={cn(
                 "mask-[radial-gradient(500px_circle_at_center,white,transparent)]",
-                "inset-x-0 inset-y-[-20%] h-[100%] "
+                "inset-x-0 inset-y-[-20%] h-full "
               )}
             />
             {/* Hero */}
-    <div className="p-[8rem] flex justify-center items-center flex-col gap-4 ">
+    <div className="p-32 flex justify-center items-center flex-col gap-4 ">
             <p className="text-center text-sm font-bold text-blue-600">Subprocessors</p>
             <h1 className="text-center text-6xl">Subprocessors</h1>
             <p className="text-center text-xl pt-4 text-gray-500">
@@ -146,11 +156,11 @@ export default function Subprocesses() {
               <td>Web content scraping and processing</td>
               <td className="text-blue-600">United States</td>
             </tr>
-            {/* <tr>
+            <tr>
               <td className="text-blue-600">Supadata</td>
               <td>YouTube content processing</td>
               <td className="text-blue-600">United States</td>
-            </tr> */}
+            </tr>
           </tbody>
         </table>
 

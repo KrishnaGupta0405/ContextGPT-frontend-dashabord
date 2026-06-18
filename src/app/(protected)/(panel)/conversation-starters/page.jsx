@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ConversationStarters = () => {
   const { account } = useAuth();
@@ -238,9 +239,34 @@ const ConversationStarters = () => {
           {/* Left Column: List of Starters */}
           <div className="flex w-1/2 flex-col gap-4 overflow-y-auto pr-2 pb-10">
             {isLoading && starters.length === 0 ? (
-              <div className="text-muted-foreground p-4 text-sm">
-                Loading...
-              </div>
+              <>
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {/* Chevron arrows area */}
+                        <div className="flex flex-col gap-1">
+                          <Skeleton className="h-4 w-4" />
+                          <Skeleton className="h-4 w-4" />
+                        </div>
+                        {/* Badge/label */}
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="h-4 w-8" />
+                        <Skeleton className="h-4 w-10" />
+                      </div>
+                    </div>
+                    {/* Message text */}
+                    <div className="pl-8">
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
+                ))}
+              </>
             ) : starters.length === 0 ? (
               <div className="text-muted-foreground p-4 text-sm">
                 No conversation starters found.

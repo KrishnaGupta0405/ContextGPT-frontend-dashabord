@@ -41,6 +41,7 @@ import { toast } from "sonner";
 export function CurrentSubscription() {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [actionLoading, setActionLoading] = useState(null); // "cancel" | "pause" | "resume" | "payNow"
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   // const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
@@ -48,12 +49,16 @@ export function CurrentSubscription() {
   const fetchSubscriptionData = async () => {
     try {
       setLoading(true);
+      setFetchError(false);
       const subResponse = await api.get("/billing/subscription/current");
       if (subResponse?.data?.success) {
         setSubscription(subResponse.data.data);
+      } else {
+        setSubscription(null);
       }
     } catch (error) {
       console.error("Error fetching subscription data:", error);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -82,6 +87,7 @@ export function CurrentSubscription() {
   const getPlanName = (planStr) => {
     if (!planStr) return "Free Plan";
     return planStr
+      .replace(/_(nt|t)$/i, "")
       .replace(/_/g, " ")
       .replace("pri ", "")
       .replace("montly", "monthly")
@@ -268,14 +274,11 @@ export function CurrentSubscription() {
 
             {loading ? (
               <Skeleton className="h-8 w-24" />
-            ) : (
+            ) : subscription ? (
               <div>
-                {getStatusBadge(
-                  subscription?.status || "inactive",
-                  subscription?.isTrial
-                )}
+                {getStatusBadge(subscription.status, subscription.isTrial)}
               </div>
-            )}
+            ) : null}
           </div>
         </CardHeader>
 
@@ -294,6 +297,19 @@ export function CurrentSubscription() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : fetchError ? (
+            <div className="py-8 text-center">
+              <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <AlertTriangle className="text-muted-foreground h-8 w-8" />
+              </div>
+              <h3 className="text-lg font-medium">Could not load subscription</h3>
+              <p className="text-muted-foreground mx-auto mt-1 mb-6 max-w-sm text-sm text-balance">
+                There was a problem connecting to the server. Please check your connection and try again.
+              </p>
+              <Button variant="outline" onClick={fetchSubscriptionData}>
+                Retry
+              </Button>
             </div>
           ) : !subscription ? (
             <div className="py-8 text-center">

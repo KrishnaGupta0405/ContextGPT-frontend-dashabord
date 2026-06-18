@@ -3,7 +3,17 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { SupportEmail, AdminEmail, SUPPORT_EMAIL } from "@/components/constraint";
 export const metadata = {
-  title: "Terms & Conditions | ContextGPT",
+  title: "ContextGPT | Terms & Conditions",
+  description: "Read ContextGPT's Terms & Conditions — the rules governing use of our platform and services.",
+  alternates: { canonical: "https://contextgpt.com/legal/terms" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "ContextGPT",
+    title: "ContextGPT | Terms & Conditions",
+    description: "Read ContextGPT's Terms & Conditions.",
+    url: "https://contextgpt.com/legal/terms",
+  },
 };
 
 export default function Terms() {
@@ -19,17 +29,17 @@ export default function Terms() {
             width={180}
             className={cn(
               "mask-[radial-gradient(500px_circle_at_center,white,transparent)]",
-              "inset-x-0 inset-y-[-20%] h-[100%] "
+              "inset-x-0 inset-y-[-20%] h-full "
             )}
           />
           {/* Hero */}
-  <div className="p-[8rem] flex justify-center items-center flex-col gap-4 ">
-          <p className="text-center text-sm font-bold text-blue-600">Terms and Conditions</p>
-          <h1 className="text-center text-6xl">Terms and Conditions</h1>
-          <p className="text-center text-xl pt-4 text-gray-500">
-            By continuing to use our platform, you agree to these terms and conditions.
-          </p>
-  </div>
+          <div className="p-32 flex justify-center items-center flex-col gap-4 ">
+            <p className="text-center text-sm font-bold text-blue-600">Terms and Conditions</p>
+            <h1 className="text-center text-6xl">Terms and Conditions</h1>
+            <p className="text-center text-xl pt-4 text-gray-500">
+              By continuing to use our platform, you agree to these terms and conditions.
+            </p>
+          </div>
       </div>
       <article className="prose prose-slate mx-auto max-w-3xl px-6">
 

@@ -2,7 +2,17 @@ import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
 import { SUPPORT_EMAIL } from "@/components/constraint";
 export const metadata = {
-  title: "Refund Policy | ContextGPT",
+  title: "ContextGPT | Refund Policy",
+  description: "Read ContextGPT's refund policy — understand your rights and how to request a refund.",
+  alternates: { canonical: "https://contextgpt.com/legal/refund" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "ContextGPT",
+    title: "ContextGPT | Refund Policy",
+    description: "Read ContextGPT's refund policy.",
+    url: "https://contextgpt.com/legal/refund",
+  },
 };
 
 export default function Refund() {
@@ -59,6 +69,12 @@ export default function Refund() {
           time from your dashboard. Your plan will remain active until the end
           of the current billing cycle, and you will not be charged again.
         </p>
+        <p>
+          We do <strong>not</strong> offer partial refunds for unused days on
+          yearly plans. 
+          {/* However, if you experience a significant service issue,
+          please contact us and we will review your case on an individual basis. */}
+        </p>
 
         <h2>4. Plan Upgrades &amp; Proration</h2>
         <p>
@@ -98,7 +114,7 @@ export default function Refund() {
 
         <h3>Examples</h3>
         <div style={{ marginBottom: "20px" }}>
-          <h4>Example 1: Early Upgrade (Less than 25% quota used) → Receive Credit</h4>
+          <h4>Example 1: Early Upgrade (Less than 25% quota used) → Receive <strong>time-based prorated credit</strong> Credit</h4>
           <p>
             <strong>Your Plan:</strong> Starter ($50/month) with 4,000 messages and 8,000 pages<br />
             <strong>Upgrade To:</strong> Scale ($80/month) with 20,000 messages and 30,000 pages<br />
@@ -133,7 +149,7 @@ export default function Refund() {
             <strong>Usage Ratio:</strong> max(50%, 75%) = <strong>75%</strong> ≥ 25% ✓
           </p>
           <p>
-            <strong>Result:</strong> <strong>No credit issued</strong> — you've already extracted substantial value from Starter
+            <strong>Result:</strong> <strong>No time-based proration credit issued</strong> — you've already extracted substantial value from Starter
           </p>
           <p>
             <strong>What You Pay:</strong><br />
@@ -143,23 +159,39 @@ export default function Refund() {
           </p>
         </div>
 
-        <p>
-          For full details, see our{" "}
-          <a href="/terms">Terms &amp; Conditions</a> (Section 5: Proration
-          &amp; Plan Changes).
+        <p className="text-sm text-slate-400">
+          Note: The plans, prices, and quotas above are illustrative examples
+          only. For current plan details and pricing, please refer to your{" "}
+          <a href="/billing">Billing</a> page.
         </p>
+
+        {/* <p>
+          For full details, see our{" "}
+          <a href="/legal/terms">Terms &amp; Conditions</a> (Section 5: Proration
+          &amp; Plan Changes).
+        </p> */}
 
         <h2>5. Plan Downgrades</h2>
         <p>
           Downgrades take effect at the next billing period. No refund is issued
-          for the current period, as you retain access to the higher-tier plan
-          until renewal.
+          for the current period, as you retain access to the current plan
+          until current period end.
         </p>
 
         <h2>6. Add-Ons</h2>
         <p>
           Add-ons (e.g., extra messages, branding removal) are non-refundable
           once activated for the current billing period.
+        </p>
+        <p>
+          Add-ons are independent of, and not contingent upon, any plan or
+          subscription. An active subscription is required to make use of an
+          add-on; however, should your subscription be cancelled, downgraded,
+          or otherwise lapse, any unused add-on quota will remain available to
+          you until the end of its own respective validity period. You may, at
+          your discretion, elect to consume add-on quota (e.g., messages or
+          pages) prior to consuming the quota allotted under your plan
+          subscription.
         </p>
 
         <h2>7. How to Request a Refund</h2>
@@ -175,14 +207,14 @@ export default function Refund() {
           </li>
           <li>
             For questions or special circumstances, you may email us at{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>, and we will review your request within 2 business days.
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>, and we will review your request.
              However, refunds are generally not issued except in cases of billing errors .
           </li>
         </ul>
-        <p>
+        {/* <p>
           For more details on subscription management and cancellation, please refer to our{" "}
           <a href="/terms">Terms &amp; Conditions</a> (Section 6: Billing &amp; Subscriptions).
-        </p>
+        </p> */}
 
         <h2>8. Exceptions</h2>
         <p>

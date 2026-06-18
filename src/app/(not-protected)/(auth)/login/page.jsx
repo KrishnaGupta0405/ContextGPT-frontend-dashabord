@@ -21,7 +21,7 @@ import { CustomBreadcrumb } from "@/components/ui/CustomBreadcrumb";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 import LoadingIndicator from "@/components/ui/LoadingIndicator";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 const loginSchema = z.object({
@@ -35,6 +35,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const loadingBarRef = React.useRef(null);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -59,8 +60,8 @@ export default function LoginPage() {
       console.log("Login response:", response);
 
       // Update global auth state
-      const { user, account } = response.data.data;
-      login(user, account);
+      const { user, account, subscription } = response.data.data;
+      login(user, account, subscription);
 
       toast.success("Logged in successfully!", {
         id: toastId,
@@ -71,7 +72,9 @@ export default function LoginPage() {
       // push the router after 2.5 seconds
       setTimeout(() => {
         loadingBarRef.current.complete();
-        router.push("/select-chatbot");
+        const callbackUrl = searchParams.get("callbackUrl");
+        const safePath = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/select-chatbot";
+        router.push(safePath);
       }, 2500);
     } catch (error) {
       loadingBarRef.current.complete();

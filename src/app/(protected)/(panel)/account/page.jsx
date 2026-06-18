@@ -18,16 +18,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
-  Facebook,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
   Mail,
   User,
   Calendar,
   Clock,
-  ExternalLink,
   Loader2,
   Monitor,
   Smartphone,
@@ -44,6 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ProfileAvatar } from "./ProfileAvatar";
+import { NotificationPreferences } from "./NotificationPreferences";
 
 const Account = () => {
   const { user, account, login, logout } = useAuth();
@@ -51,7 +46,6 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [savingDetails, setSavingDetails] = useState(false);
   const [savingLinks, setSavingLinks] = useState(false);
-
   // Delete account state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteStep, setDeleteStep] = useState(1);
@@ -239,15 +233,6 @@ const Account = () => {
     } finally {
       setDeletingAccount(false);
     }
-  };
-
-  const getInitials = (name) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
   };
 
   const formatDate = (dateString) => {
@@ -673,6 +658,9 @@ const Account = () => {
             </CardFooter>
           </Card> */}
 
+          {/* Email Notification Preferences */}
+          <NotificationPreferences />
+
           {/* Danger Zone */}
           <Card className="border-red-200 shadow-sm">
             <CardHeader>
@@ -689,6 +677,7 @@ const Account = () => {
               <Button
                 variant="destructive"
                 onClick={openDeleteDialog}
+                disabled={loading}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Account

@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useChatbot } from "@/context/ChatbotContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
 import { PlayCircle, ChevronUp, ChevronDown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -260,10 +261,27 @@ const ConversationFollowups = () => {
         <div className="flex min-h-0 flex-1 gap-8">
           {/* Left Column: List of Followups */}
           <div className="flex w-1/2 flex-col gap-4 overflow-y-auto pr-2 pb-10">
-            {isLoading && followups.length === 0 ? (
-              <div className="text-muted-foreground p-4 text-sm">
-                Loading...
-              </div>
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-3 flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col gap-1">
+                        <Skeleton className="h-3 w-3" />
+                        <Skeleton className="h-3 w-3" />
+                      </div>
+                      <Skeleton className="h-6 w-28 rounded-full" />
+                    </div>
+                    <div className="flex gap-4">
+                      <Skeleton className="h-4 w-8" />
+                      <Skeleton className="h-4 w-10" />
+                    </div>
+                  </div>
+                  <div className="pl-8">
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                </div>
+              ))
             ) : followups.length === 0 ? (
               <div className="text-muted-foreground p-4 text-sm">
                 No conversation followups found.

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -76,37 +77,15 @@ const NAV_TOOLS = TOOL_CATEGORIES.reduce((acc, cat) => {
 
 export default function NavigationMenuDemo() {
   const { user, logout } = useAuth();
-  const [isVisible, setIsVisible] = React.useState(true);
-  const [lastScrollY, setLastScrollY] = React.useState(0);
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Show navbar if scrolling up or at the very top
-      if (currentScrollY < lastScrollY || currentScrollY < 10) {
-        setIsVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 10) {
-        // Hide navbar if scrolling down and past the top
-        setIsVisible(false);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    const onScroll = () => requestAnimationFrame(handleScroll);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [lastScrollY]);
+  const pathname = usePathname();
 
   return (
     <div
       className={cn(
-        "bg-background/80 border-border top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-md transition-transform duration-300 ease-in-out",
-        isVisible ? "translate-y-0" : "-translate-y-full",
+        "fixed bg-background/90 border-border top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-md",
       )}
     >
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-1.5">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <img
@@ -127,34 +106,26 @@ export default function NavigationMenuDemo() {
         </div>
         <NavigationMenu>
           <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/lead-generation" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Lead Generation
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/features" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Features
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/integration" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Integrations
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/pricing" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Pricing
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
+            {[
+              { href: "/lead-generation", label: "Lead Generation" },
+              { href: "/features", label: "Features" },
+              { href: "/integration", label: "Integrations" },
+              { href: "/pricing", label: "Pricing" },
+            ].map(({ href, label }) => (
+              <NavigationMenuItem key={href}>
+                <Link href={href} legacyBehavior passHref>
+                  <NavigationMenuLink
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      pathname === href && "bg-gray-100 text-blue-500",
+                      "text-sm leading-tight tracking-tight"
+                    )}
+                  >
+                    {label}
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            ))}
             {/* Resources dropdown */}
             <NavigationMenuItem>
               <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
@@ -322,16 +293,26 @@ export default function NavigationMenuDemo() {
                 className="hover:bg-accent hover:text-accent-foreground text-muted-foreground flex items-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-medium transition-all"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                Sign Out
               </button>
             </>
           ) : (
+            <>
             <Link
               href="/login"
-              className="bg-primary text-primary-foreground rounded-lg border border-transparent px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
+              className="bg-[#155ded] text-white hover:bg-[#155ded]/80 flex items-center gap-2 rounded-lg px-3 py-1 text-sm font-medium transition-all hover:opacity-90"
             >
-              Login
+              Sign In
             </Link>
+            {pathname !== "/pricing" && (
+              <Link
+                href="/pricing"
+                className="text-[#155ded] border border-[#155ded] flex items-center gap-2 rounded-lg px-3 py-1 text-sm font-medium transition-all hover:opacity-90"
+              >
+                Start a free trial
+              </Link>
+            )}
+            </>
           )}
         </div>
       </div>

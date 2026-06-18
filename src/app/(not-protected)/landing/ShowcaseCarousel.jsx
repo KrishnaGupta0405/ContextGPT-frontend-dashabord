@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { LayoutDashboard, BarChart2, MessageSquare, Settings, Plug } from 'lucide-react';
 
 const tabs = [
@@ -229,7 +229,7 @@ const ShowcaseCarousel = () => {
           <div className="relative w-full aspect-video rounded-xl overflow-hidden">
             {/* Gradient background with effects */}
             <div className=" absolute inset-0">
-              <Image src="/landing/carousel-bg.avif" alt="Showcase" fill className="object-cover" priority={true} />
+              <img src="/landing/carousel-bg.avif" alt="Showcase" className="absolute inset-0 w-full h-full object-cover" />
             </div>
 
             {/* Real image overlay */}
@@ -237,12 +237,10 @@ const ShowcaseCarousel = () => {
               <div className="relative w-full h-full max-w-4xl rounded-lg overflow-hidden shadow-2xl">
                 {tabs.map((tab) => (
                   <div key={tab.id} className={getTabClass(tab.id)}>
-                    <Image
+                    <img
                       src={tab.image}
                       alt={tab.label}
-                      fill
-                      className={`object-cover transition-opacity duration-300 ${loadedImages.has(tab.id) ? 'opacity-100' : 'opacity-0'}`}
-                      priority={true}
+                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loadedImages.has(tab.id) ? 'opacity-100' : 'opacity-0'}`}
                       onLoad={() => handleImageLoad(tab.id)}
                     />
                     {!loadedImages.has(tab.id) && (

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatbot } from "@/context/ChatbotContext";
+import { useAuth } from "@/context/AuthContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
 import api from "@/lib/axios";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -29,6 +31,8 @@ const GeneralTab = () => {
   const router = useRouter();
   const { selectedChatbot } = useChatbot();
   const { markDirty, markClean } = useUnsavedChanges();
+  const { subscription } = useAuth();
+  const hasConversationLimit = !!subscription?.conversationLimit;
 
   const [chatbotId, setChatbotId] = useState("");
   const [name, setName] = useState("");
@@ -55,16 +59,18 @@ const GeneralTab = () => {
 
   const [availableModels, setAvailableModels] = useState([]);
 
+  const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const currentChatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId || "";
+
   useEffect(() => {
-    if (selectedChatbot) {
-      const currentChatbotId =
-        selectedChatbot.id || selectedChatbot.chatbotId || "";
+    if (currentChatbotId) {
       setChatbotId(currentChatbotId);
 
       const fetchDetails = async () => {
+        setIsLoading(true);
         try {
           const account = JSON.parse(localStorage.getItem("account") || "{}");
           const accountId = account?.id;
@@ -133,12 +139,14 @@ const GeneralTab = () => {
           console.error("Failed to fetch chatbot details:", error);
           setName(selectedChatbot.name || "");
           setDescription(selectedChatbot.description || "");
+        } finally {
+          setIsLoading(false);
         }
       };
 
       fetchDetails();
     }
-  }, [selectedChatbot]);
+  }, [currentChatbotId]);
 
   useEffect(() => {
     return () => markClean();
@@ -285,9 +293,13 @@ const GeneralTab = () => {
               WordPress plugins.
             </p>
             <div className="mt-3 flex items-center space-x-2">
-              <code className="rounded bg-[#DBEAFE] px-2 py-1 text-xs font-medium text-[#1E3A8A]">
-                {chatbotId}
-              </code>
+              {isLoading ? (
+                <Skeleton className="h-5 w-48 rounded" />
+              ) : (
+                <code className="rounded bg-[#DBEAFE] px-2 py-1 text-xs font-medium text-[#1E3A8A]">
+                  {chatbotId}
+                </code>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -310,12 +322,16 @@ const GeneralTab = () => {
             >
               Name
             </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => { setName(e.target.value); markDirty(); }}
-              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
+            {isLoading ? (
+              <Skeleton className="h-10 w-full rounded-md" />
+            ) : (
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => { setName(e.target.value); markDirty(); }}
+                className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              />
+            )}
           </div>
 
           {/* Description */}
@@ -327,28 +343,34 @@ const GeneralTab = () => {
               Description
             </Label>
             <div className="relative">
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => { setDescription(e.target.value); markDirty(); }}
-                placeholder=""
-                className="min-h-[120px] resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-              />
-              <div className="absolute right-2 bottom-2 opacity-50">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="rotate-90 text-gray-400"
-                >
-                  <path d="M7 7l10 10M17 7l-10 10" />
-                </svg>
-              </div>
+              {isLoading ? (
+                <Skeleton className="h-[120px] w-full rounded-md" />
+              ) : (
+                <>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => { setDescription(e.target.value); markDirty(); }}
+                    placeholder=""
+                    className="min-h-[120px] resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <div className="absolute right-2 bottom-2 opacity-50">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="rotate-90 text-gray-400"
+                    >
+                      <path d="M7 7l10 10M17 7l-10 10" />
+                    </svg>
+                  </div>
+                </>
+              )}
             </div>
             <p className="text-muted-foreground text-[12px] leading-relaxed">
               This description will be shown in the main home screen of your
@@ -364,13 +386,17 @@ const GeneralTab = () => {
             >
               Fallback Message
             </Label>
-            <Textarea
-              id="fallback-message"
-              value={fallbackMessage}
-              onChange={(e) => { setFallbackMessage(e.target.value); markDirty(); }}
-              placeholder=""
-              className="min-h-[100px] resize-none border-gray-200 text-[14px] focus:border-blue-500 focus:ring-blue-500"
-            />
+            {isLoading ? (
+              <Skeleton className="h-[100px] w-full rounded-md" />
+            ) : (
+              <Textarea
+                id="fallback-message"
+                value={fallbackMessage}
+                onChange={(e) => { setFallbackMessage(e.target.value); markDirty(); }}
+                placeholder=""
+                className="min-h-[100px] resize-none border-gray-200 text-[14px] focus:border-blue-500 focus:ring-blue-500"
+              />
+            )}
             <p className="text-muted-foreground text-[12px] leading-relaxed">
               Customize the message shown when the chatbot cannot find relevant
               information to answer a question.
@@ -389,11 +415,15 @@ const GeneralTab = () => {
                 it.
               </p>
             </div>
-            <Switch
-              checked={disableSmartFollowup}
-              onCheckedChange={(v) => { setDisableSmartFollowup(v); markDirty(); }}
-              className="data-[state=checked]:bg-blue-600"
-            />
+            {isLoading ? (
+              <Skeleton className="h-6 w-11 rounded-full" />
+            ) : (
+              <Switch
+                checked={disableSmartFollowup}
+                onCheckedChange={(v) => { setDisableSmartFollowup(v); markDirty(); }}
+                className="data-[state=checked]:bg-blue-600"
+              />
+            )}
           </div>
 
           {/* Number of smart follow up questions */}
@@ -404,16 +434,20 @@ const GeneralTab = () => {
             >
               Number of smart follow up questions to be shown
             </Label>
-            <Input
-              id="smart-follow-up-count"
-              type="number"
-              value={numberOfSmartFollowupQuestionShown}
-              onChange={(e) => {
-                setNumberOfSmartFollowupQuestionShown(e.target.value)
-                markDirty();
-              }}
-              className="border-gray-200"
-            />
+            {isLoading ? (
+              <Skeleton className="h-10 w-full rounded-md" />
+            ) : (
+              <Input
+                id="smart-follow-up-count"
+                type="number"
+                value={numberOfSmartFollowupQuestionShown}
+                onChange={(e) => {
+                  setNumberOfSmartFollowupQuestionShown(e.target.value)
+                  markDirty();
+                }}
+                className="border-gray-200"
+              />
+            )}
             <p className="text-muted-foreground text-[12px] leading-relaxed">
               Choose a number between 1 and 5.
             </p>
@@ -430,11 +464,15 @@ const GeneralTab = () => {
                 new lead is captured with your chatbot.
               </p>
             </div>
-            <Switch
-              checked={disableLeadNotifications}
-              onCheckedChange={(v) => { setDisableLeadNotifications(v); markDirty(); }}
-              className="data-[state=checked]:bg-blue-600"
-            />
+            {isLoading ? (
+              <Skeleton className="h-6 w-11 rounded-full" />
+            ) : (
+              <Switch
+                checked={disableLeadNotifications}
+                onCheckedChange={(v) => { setDisableLeadNotifications(v); markDirty(); }}
+                className="data-[state=checked]:bg-blue-600"
+              />
+            )}
           </div>
 
           {/* Page Context Awareness */}
@@ -448,11 +486,15 @@ const GeneralTab = () => {
                 user is viewing and can answer questions about the current page.
               </p>
             </div>
-            <Switch
-              checked={enablePageContextAwareness}
-              onCheckedChange={(v) => { setEnablePageContextAwareness(v); markDirty(); }}
-              className="data-[state=checked]:bg-blue-600"
-            />
+            {isLoading ? (
+              <Skeleton className="h-6 w-11 rounded-full" />
+            ) : (
+              <Switch
+                checked={enablePageContextAwareness}
+                onCheckedChange={(v) => { setEnablePageContextAwareness(v); markDirty(); }}
+                className="data-[state=checked]:bg-blue-600"
+              />
+            )}
           </div>
 
           {/* History Messages */}
@@ -463,13 +505,17 @@ const GeneralTab = () => {
             >
               Number of History Messages To Be Considered
             </Label>
-            <Input
-              id="history-messages"
-              type="number"
-              value={historyMessageContext}
-              onChange={(e) => { setHistoryMessageContext(e.target.value); markDirty(); }}
-              className="border-gray-200"
-            />
+            {isLoading ? (
+              <Skeleton className="h-10 w-full rounded-md" />
+            ) : (
+              <Input
+                id="history-messages"
+                type="number"
+                value={historyMessageContext}
+                onChange={(e) => { setHistoryMessageContext(e.target.value); markDirty(); }}
+                className="border-gray-200"
+              />
+            )}
             <p className="text-muted-foreground text-[12px] leading-relaxed">
               Choose a number between 0 and 4.
             </p>
@@ -483,75 +529,115 @@ const GeneralTab = () => {
             >
               GPT Model
             </Label>
-            <Select
-              value={llmModel || undefined}
-              onValueChange={(val) => { setLlmModel(val); markDirty(); }}
-            >
-              <SelectTrigger id="gpt-model" className="w-full border-gray-200">
-                <SelectValue placeholder="Select the GPT model" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableModels.filter((m) => m.provider?.toLowerCase() === "openai").map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoading ? (
+              <Skeleton className="h-10 w-full rounded-md" />
+            ) : (
+              <Select
+                value={llmModel || undefined}
+                onValueChange={(val) => { setLlmModel(val); markDirty(); }}
+              >
+                <SelectTrigger id="gpt-model" className="w-full border-gray-200">
+                  <SelectValue placeholder="Select the GPT model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableModels.filter((m) => m.provider?.toLowerCase() === "openai").map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <p className="text-muted-foreground text-[12px] leading-relaxed">
               Select the GPT model you prefer.
             </p>
           </div>
 
-          {/* Limit Messages Per Conversation */}
-          <div className="flex items-center justify-between py-2">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm font-semibold text-gray-900">
-                  Limit Messages Per Conversation
-                </Label>
-                <Lock className="text-muted-foreground/60 h-3 w-3" />
+          {/* Limit Messages Per Conversation + Max Messages Per Conversation */}
+          {!hasConversationLimit ? (
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-gray-200 bg-gray-50/50 px-4 py-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-semibold text-gray-500">
+                    Conversation Message Limits
+                  </Label>
+                  <Lock className="text-muted-foreground/60 h-3 w-3" />
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                    Growth+
+                  </span>
+                </div>
+                <p className="text-muted-foreground max-w-[650px] text-[12px] leading-relaxed">
+                  Limit and cap the number of messages per conversation. Available on Growth and above plans.
+                </p>
               </div>
-              <p className="text-muted-foreground max-w-[650px] text-[12px] leading-relaxed">
-                When enabled, users will be prompted to start a new conversation
-                after reaching the message limit.
-              </p>
-            </div>
-            <div className="flex items-center justify-center rounded p-1 transition-colors hover:bg-gray-50">
-              <Switch
-                checked={limitMessagesPerConversation}
-                onCheckedChange={(v) => { setLimitMessagesPerConversation(v); markDirty(); }}
-                className="data-[state=checked]:bg-blue-600"
-              />
-            </div>
-          </div>
-
-          {/* Max Messages Per Conversation */}
-          <div
-            className={`space-y-2 ${!limitMessagesPerConversation ? "opacity-60" : ""}`}
-          >
-            <div className="flex items-center gap-2">
-              <Label
-                htmlFor="max-messages"
-                className="text-sm font-semibold text-gray-900"
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-blue-200 text-blue-700 hover:bg-blue-50"
+                onClick={() => router.push("/billing")}
               >
-                Max Messages Per Conversation
-              </Label>
-              <Lock className="text-muted-foreground/60 h-3 w-3" />
+                Upgrade
+              </Button>
             </div>
-            <Input
-              id="max-messages"
-              type="number"
-              value={maxMessagesPerConversation}
-              onChange={(e) => { setMaxMessagesPerConversation(e.target.value); markDirty(); }}
-              disabled={!limitMessagesPerConversation}
-              className={`border-gray-200 ${!limitMessagesPerConversation ? "bg-gray-50/50" : ""}`}
-            />
-            <p className="text-muted-foreground text-[12px] leading-relaxed">
-              Number of messages before users are prompted to start a new
-              conversation.
-            </p>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm font-semibold text-gray-900">
+                      Limit Messages Per Conversation
+                    </Label>
+                    <Lock className="text-muted-foreground/60 h-3 w-3" />
+                  </div>
+                  <p className="text-muted-foreground max-w-[650px] text-[12px] leading-relaxed">
+                    When enabled, users will be prompted to start a new conversation
+                    after reaching the message limit.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center rounded p-1 transition-colors hover:bg-gray-50">
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-11 rounded-full" />
+                  ) : (
+                    <Switch
+                      checked={limitMessagesPerConversation}
+                      onCheckedChange={(v) => { setLimitMessagesPerConversation(v); markDirty(); }}
+                      className="data-[state=checked]:bg-blue-600"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div
+                className={`space-y-2 ${!limitMessagesPerConversation ? "opacity-60" : ""}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Label
+                    htmlFor="max-messages"
+                    className="text-sm font-semibold text-gray-900"
+                  >
+                    Max Messages Per Conversation
+                  </Label>
+                  <Lock className="text-muted-foreground/60 h-3 w-3" />
+                </div>
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full rounded-md" />
+                ) : (
+                  <Input
+                    id="max-messages"
+                    type="number"
+                    value={maxMessagesPerConversation}
+                    onChange={(e) => { setMaxMessagesPerConversation(e.target.value); markDirty(); }}
+                    disabled={!limitMessagesPerConversation}
+                    className={`border-gray-200 ${!limitMessagesPerConversation ? "bg-gray-50/50" : ""}`}
+                  />
+                )}
+                <p className="text-muted-foreground text-[12px] leading-relaxed">
+                  Number of messages before users are prompted to start a new
+                  conversation.
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Danger Zone */}

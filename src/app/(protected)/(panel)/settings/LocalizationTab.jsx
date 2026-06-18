@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
@@ -455,11 +456,13 @@ const LocalizationTab = () => {
     defaultValues,
   });
 
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
+
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchSettings();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   useEffect(() => {
     if (form.formState.isDirty) {
@@ -552,14 +555,6 @@ const LocalizationTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="pb-24">
       <Form {...form}>
@@ -578,80 +573,91 @@ const LocalizationTab = () => {
                 </p>
               </div>
 
-              <div className="space-y-6 md:col-span-3">
-                {section.fields.map((name) => (
-                  <FormField
-                    key={name}
-                    control={form.control}
-                    name={name}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-semibold text-slate-700">
-                          {name === "localeCode"
-                            ? "Language"
-                            : fieldLabel(name)}
-                        </FormLabel>
-                        <FormControl>
-                          {name === "localeCode" ? (
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              value={field.value}
-                            >
-                              <SelectTrigger className="h-10 max-w-xl bg-white text-sm">
-                                <SelectValue placeholder="Select a language">
-                                  {field.value &&
-                                  languages.find(
-                                    (l) => l.code === field.value,
-                                  ) ? (
-                                    <span className="flex items-center gap-2">
-                                      <span className="text-base">
-                                        {
-                                          languages.find(
-                                            (l) => l.code === field.value,
-                                          ).flag
-                                        }
+              {initialLoading ? (
+                <div className="space-y-6 md:col-span-3">
+                  {section.fields.map((name) => (
+                    <div key={name} className="space-y-1.5">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-10 w-full max-w-xl rounded-md" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6 md:col-span-3">
+                  {section.fields.map((name) => (
+                    <FormField
+                      key={name}
+                      control={form.control}
+                      name={name}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-slate-700">
+                            {name === "localeCode"
+                              ? "Language"
+                              : fieldLabel(name)}
+                          </FormLabel>
+                          <FormControl>
+                            {name === "localeCode" ? (
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                value={field.value}
+                              >
+                                <SelectTrigger className="h-10 max-w-xl bg-white text-sm">
+                                  <SelectValue placeholder="Select a language">
+                                    {field.value &&
+                                    languages.find(
+                                      (l) => l.code === field.value,
+                                    ) ? (
+                                      <span className="flex items-center gap-2">
+                                        <span className="text-base">
+                                          {
+                                            languages.find(
+                                              (l) => l.code === field.value,
+                                            ).flag
+                                          }
+                                        </span>
+                                        <span>
+                                          {
+                                            languages.find(
+                                              (l) => l.code === field.value,
+                                            ).name
+                                          }
+                                        </span>
                                       </span>
-                                      <span>
-                                        {
-                                          languages.find(
-                                            (l) => l.code === field.value,
-                                          ).name
-                                        }
+                                    ) : (
+                                      "Select a language"
+                                    )}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {languages.map((lang) => (
+                                    <SelectItem key={lang.code} value={lang.code}>
+                                      <span className="flex items-center gap-2">
+                                        <span className="text-base">
+                                          {lang.flag}
+                                        </span>
+                                        <span>{lang.name}</span>
                                       </span>
-                                    </span>
-                                  ) : (
-                                    "Select a language"
-                                  )}
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {languages.map((lang) => (
-                                  <SelectItem key={lang.code} value={lang.code}>
-                                    <span className="flex items-center gap-2">
-                                      <span className="text-base">
-                                        {lang.flag}
-                                      </span>
-                                      <span>{lang.name}</span>
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Input
-                              placeholder={fieldLabel(name)}
-                              {...field}
-                              className="h-10 max-w-xl text-sm"
-                            />
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Input
+                                placeholder={fieldLabel(name)}
+                                {...field}
+                                className="h-10 max-w-xl text-sm"
+                              />
+                            )}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
 

@@ -1,5 +1,8 @@
+// Personal website integration is availle to all plans subscription, for the chatbot website embedding purposes
+
 import React from "react";
 import { Globe, X, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const PersonalWebsiteIntegration = {
   key: "PERSONAL_WEBSITE",
@@ -30,7 +33,7 @@ export const PersonalWebsiteIntegration = {
 
 // Separate component for domain list editing (needs state)
 function DomainListEditor({ extraData, helpers }) {
-  const { domains = [], setDomains } = helpers;
+  const { domains = [], setDomains, isLoadingExtra } = helpers;
   const [inputValue, setInputValue] = React.useState("");
 
   const addDomain = () => {
@@ -96,9 +99,17 @@ function DomainListEditor({ extraData, helpers }) {
       )}
 
       {domains.length === 0 && (
-        <p className="text-[12px] text-slate-400">
-          No domains added yet. Add at least one domain to save.
-        </p>
+        isLoadingExtra ? (
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-7 w-28 rounded-full" />
+            <Skeleton className="h-7 w-20 rounded-full" />
+            <Skeleton className="h-7 w-24 rounded-full" />
+          </div>
+        ) : (
+          <p className="text-[12px] text-slate-400">
+            No domains added yet. Add at least one domain to save.
+          </p>
+        )
       )}
     </div>
   );

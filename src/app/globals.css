@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+@source inline("text-blue-500 text-blue-600 text-blue-700 text-blue-800 bg-blue-50 bg-blue-100 bg-blue-200 border-blue-200 border-blue-300 border-blue-400 border-blue-500 bg-blue-500 bg-blue-600 bg-blue-700 bg-blue-800 bg-blue-900 text-blue-900");
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -148,4 +150,18 @@
     @apply bg-background text-foreground;
     @apply bg-background text-foreground;
   }
+}
+
+/* Toast close button styling */
+[data-close-button] {
+  background: transparent !important;
+  color: currentColor !important;
+}
+
+[data-close-button]:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.dark [data-close-button]:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
 }

@@ -2,11 +2,11 @@
 
 import HeroSection from "./HeroSection";
 import HowItWorksSection from "./HowItWorksSection";
-import FeaturesSection from "./FeaturesSection";
+import { FeaturesSectionHero } from "./FeaturesSection";
 import HowToInstall from "./HowToInstall";
 import CTASection from "./CTASection";
-import FromTheAuthor from "./FromTheAuthor";
-import FAQSection from "./FAQSection";
+import FromTheAuthor, { IntegrationsSection, ThreeStepsSection } from "./FromTheAuthor";
+import FAQSection from "./FAQSection"; 
 import BentoGrid from "./BentoGrid";
 import ShowcaseCarousel from "./ShowcaseCarousel";
 import {IntegrationHero} from "@/app/(not-protected)/integration/page";
@@ -21,10 +21,12 @@ export default function Landing() {
         
         <BentoGrid />
         {/* <HowToInstall /> */}
-        <FeaturesSection />
+        <FeaturesSectionHero />
       </div>
       <div className="bg-linear-to-b from-white to-blue-100 px-[1rem] sm:px-26 lg:px-36">
         <FromTheAuthor />
+        <ThreeStepsSection />
+        <IntegrationsSection />
       </div>
 
       <div className="bg-black px-[1rem] sm:px-26 lg:px-36">

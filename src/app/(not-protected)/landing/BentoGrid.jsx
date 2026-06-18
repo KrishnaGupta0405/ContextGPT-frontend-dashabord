@@ -13,7 +13,7 @@ import FeaturesCards from "./FeaturesCards";
 import ChatAnimationCard from "./ChatAnimationCard";
 import DataSourcesCard from "./DataSourcesCard";
 import { useIsMobile } from "../../../hooks/use-mobile";
-import Image from "next/image";
+// import Image from "next/image";
 
 const FloatingPathsBackground = dynamic(
   () =>
@@ -163,11 +163,10 @@ const BentoGridItem = ({ item, globeConfig, isMobile }) => {
                     boxShadow: i > 0 ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
                   }}
                 >
-                  <Image
+                  <img
                     src={image.src}
                     alt={image.alt || `Brand Image ${i + 1}`}
-                    fill
-                    className="object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>
               );
@@ -190,7 +189,7 @@ const BentoGridItem = ({ item, globeConfig, isMobile }) => {
             </div>
             {item.hasGlobe ? (
               <div className="absolute right-0 bottom-0">
-                <Image
+                <img
                   src="/landing/map.jpg"
                   alt="globe"
                   width={600}

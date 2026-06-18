@@ -54,9 +54,9 @@ export const ChatbotMembers = () => {
   // Track ongoing role update/remove status per member
   const [processingId, setProcessingId] = useState(null);
 
-  const getChatbotId = () => {
-    return selectedChatbot?.id || selectedChatbot?.chatbotId || null;
-  };
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId || null;
+
+  const getChatbotId = () => chatbotId;
 
   const fetchMembers = async () => {
     try {
@@ -80,7 +80,7 @@ export const ChatbotMembers = () => {
 
   useEffect(() => {
     fetchMembers();
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   const handleUpdateRole = async (userId, newRole) => {
     try {

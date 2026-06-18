@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import Script from "next/script";
 import {
   ArrowRight,
   Zap,
@@ -10,18 +10,16 @@ import {
   Calendar,
   UserCheck,
   MessageSquare,
-  Check,
 } from "lucide-react";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
-  }),
-};
-
+import {TrustedBySection} from "../landing/HeroSection.jsx";
+import WorkWithTools from "./WorkWithTools.jsx";
+import { FeaturesSectionLead } from "../landing/FeaturesSection.jsx";
+import FourWaysSection from "./FourWaysSection.jsx";
+import RealScenariosSection from "./RealScenariosSection.jsx";
+import BuiltForBusinessesSection from "./BuiltForBusinessesSection.jsx";
+import LeadFAQSection from "./FAQSection.jsx";
+import FAQAccordion from "../landing/FAQSection/FAQAccordion.jsx";
+import FAQSection from "../landing/FAQSection/index.jsx";
 const FEATURES = [
   {
     icon: Zap,
@@ -86,135 +84,95 @@ const STEPS = [
 
 export default function LeadGeneration() {
   return (
-    <div className="bg-white text-slate-900">
+    <>
+    <div className="sm:px-20 lg:px-30">
       {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden px-4 pt-24 pb-20 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/60 to-white" />
-        <div className="mx-auto max-w-3xl text-center">
-          <motion.h1
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={0}
-            className="text-4xl font-extrabold tracking-tight sm:text-5xl"
-          >
-            Turn Visitors into{" "}
-            <span className="text-blue-600">Qualified Leads</span>
-          </motion.h1>
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={1}
-            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600"
-          >
-            Your AI chatbot captures, qualifies, and books meetings with leads
-            24/7 &mdash; so your sales team wakes up to a full pipeline.
-          </motion.p>
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={2}
-            className="mt-10"
-          >
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-700"
-            >
-              Start Capturing Leads
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── How It Works ─── */}
-      <section className="bg-slate-50 px-4 py-24 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="text-center text-3xl font-bold tracking-tight">
-            How It Works
-          </h2>
-
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s, i) => (
-              <motion.div
-                key={s.step}
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                className="rounded-2xl border border-slate-200 bg-white p-6 text-center"
-              >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">
-                  {s.step}
-                </span>
-                <h3 className="mt-4 text-lg font-bold">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  {s.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Features ─── */}
-      <section className="px-4 py-24 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-3xl font-bold tracking-tight">
-            Built for Lead Generation
-          </h2>
-
-          <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <motion.div
-                  key={f.title}
-                  variants={fadeUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  custom={i % 3}
-                  className="group rounded-2xl border border-slate-200 bg-white p-7 transition-shadow hover:shadow-md"
+      <section className="relative overflow-hidden px-4 pt-5 pb-20 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 -z-10" />
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-4">
+            {/* Left Side Content */}
+            <div className="mx-auto flex max-w-2xl flex-col text-left lg:mx-0">
+              <span className="mb-2 text-sm font-semibold text-blue-600">
+                Built for service businesses that can&apos;t afford to miss leads
+              </span>
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-7xl">
+                Stop Losing Leads to Slow Replies
+              </h1>
+              <p className="mt-6 text-lg font-semibold leading-relaxed text-slate-600">
+                Book appointments instantly — while competitors are still
+                typing.
+              </p>
+              <p className="mt-4 text-lg leading-relaxed text-slate-600">
+                In just <strong>5 minutes</strong>, SiteGPT&apos;s{" "}
+                <strong>InstantTrain&trade; AI</strong> makes your website a{" "}
+                <strong>24/7 sales rep</strong> — replying in{" "}
+                <strong>5 seconds</strong>, capturing leads instantly, and
+                booking qualified appointments automatically.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-md leading-tight text-slate-600">
+                <span>⏱️ Live in 5 minutes</span>
+                <span>⚡ Replies in seconds</span>
+                <span>🌙 Books 24/7</span>
+              </div>
+              <div className="mt-10 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700"
                 >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-bold">{f.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                    {f.description}
-                  </p>
-                </motion.div>
-              );
-            })}
+                  Start free trial
+                </Link>
+                <Link
+                  href="/demo"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 text-base font-semibold text-slate-900 hover:bg-slate-50"
+                >
+                  Watch demo
+                </Link>
+              </div>
+              <p className="mt-6 text-sm text-slate-500">
+                Trusted by 40+ businesses · 50,000+ conversations handled
+              </p>
+            </div>
+
+            {/* Right Side — Embedded Chatbot */}
+            <div className="flex w-full justify-center lg:justify-center">
+              <div
+                id="contextgpt-leadgen-container"
+                className="h-[630px] w-full max-w-[500px] overflow-hidden rounded-3xl border-2 border-blue-400"
+              />
+            </div>
           </div>
         </div>
+
+        <Script
+          src="https://contextgpt-widget-testing.vercel.app/loader.js?instance=embedded-leadgen"
+          data-chatbot-id="27df3d37-8395-4d1f-a084-5609237ae367"
+          data-server="http://localhost:9000"
+          data-mode="embedded"
+          data-container="#contextgpt-leadgen-container"
+          data-instance="embedded-leadgen"
+          strategy="afterInteractive"
+          type="module"
+        />
       </section>
 
-      {/* ─── CTA ─── */}
-      <section className="px-4 py-24 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 px-8 py-16 text-center text-white shadow-2xl shadow-blue-600/20">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Ready to Fill Your Pipeline?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-blue-100">
-            Start your free trial and have your lead-gen chatbot live in under
-            5 minutes. No credit card required.
-          </p>
-          <div className="mt-10">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-blue-700 shadow-lg transition-all hover:bg-blue-50"
-            >
-              Start Free Trial
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      <div className="w-[80%] mx-auto gap-4">
+        <TrustedBySection />
+        <hr />
+        <WorkWithTools />
+
+      </div>
+      
     </div>
+        <FeaturesSectionLead />
+      <FourWaysSection />
+      <RealScenariosSection />
+      <BuiltForBusinessesSection />
+
+<LeadFAQSection />
+<div className=" px-[1rem] sm:px-26 lg:px-36 bg-gradient-to-b from-blue-50 to-white  ">
+<FAQSection />
+</div>
+</>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+// import Image from "next/image";
 import {
   ArrowRight,
   MessageSquare,
@@ -302,7 +302,7 @@ export const IntegrationHero=()=>{
       </div>
 
       <div className="relative -mt-60 -mb-60 flex items-center justify-center">
-        <Image
+        <img
           src="/icons/Integrations_bg.svg"
           alt="Hero"
           width={100}

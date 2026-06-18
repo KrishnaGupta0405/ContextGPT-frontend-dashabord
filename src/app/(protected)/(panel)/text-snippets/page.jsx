@@ -9,6 +9,7 @@ import { useChatbot } from "@/context/ChatbotContext";
 import { PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TextSnippets = () => {
   const { account } = useAuth();
@@ -99,8 +100,11 @@ const TextSnippets = () => {
             </span>
           </p>
 
-          <Textarea
-            placeholder={`What is the pricing of the product?
+          {isLoading ? (
+            <Skeleton className="min-h-[400px] max-h-[60vh] w-full rounded-xl" />
+          ) : (
+            <Textarea
+              placeholder={`What is the pricing of the product?
 The pricing of our product is $99.
 
 How to contact you?
@@ -110,11 +114,11 @@ Do you offer any discounts?
 We currently do not have any kind of discounts. But we have a generous free plan which you can make use of.
 
 Our product has 4 pricing plans – $19/month, $49/month, $99/month and $199/month.`}
-            className="max-h-[60vh] min-h-[400px] flex-1 resize-none overflow-y-auto rounded-xl border-slate-200 bg-white p-6 text-[15px] shadow-sm focus-visible:ring-1 focus-visible:ring-blue-500"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={isLoading}
-          />
+              className="max-h-[60vh] min-h-[400px] flex-1 resize-none overflow-y-auto rounded-xl border-slate-200 bg-white p-6 text-[15px] shadow-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          )}
 
           <div className="mt-6 flex justify-start">
             <Button

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Loader2,
   Zap,
   Tag,
   Package,
@@ -14,6 +13,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/axios";
 
@@ -243,8 +243,36 @@ export default function AddonsTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-12">
-        <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+      <div className="space-y-6">
+        {/* Summary cards skeleton */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="border shadow-sm">
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {/* Addon rows skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-16" />
+          {[1, 2].map((i) => (
+            <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 space-y-3">
+              <div className="flex items-start gap-4">
+                <Skeleton className="h-9 w-9 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-56" />
+                </div>
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

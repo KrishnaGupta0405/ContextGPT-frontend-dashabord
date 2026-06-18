@@ -1,455 +1,725 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useChatbot } from "@/context/ChatbotContext";
 import api from "@/lib/axios";
+import {
+  Link as LinkIcon,
+  FileText,
+  Quote,
+  CalendarDays,
+  ThumbsUp,
+  ThumbsDown,
+  LayoutTemplate,
+  Info,
+  ChevronRight,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Pie,
+  PieChart,
+  Cell,
+  Tooltip,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
 
-// ─── Color Palette ──────────────────────────────────────────────────────────
-const COLORS = {
-  chat: "#3b82f6",
-  email: "#3b82f6",
-  android: "#3b82f6",
-  ios: "#3b82f6",
-  whatsapp: "#22c55e",
-  web: "#3b82f6",
-  finInvolved: "#3b82f6",
-  finNotInvolved: "#9ca3af",
-  resolvedByFin: "#22c55e",
-  resolvedByHuman: "#10b981",
-  escalatedResolved: "#6366f1",
-  escalatedUnresolved: "#f59e0b",
-  abandoned: "#9ca3af",
-  unresolved: "#9ca3af",
-  positive: "#22c55e",
-  neutral: "#f59e0b",
-  negative: "#ef4444",
-  noFeedback: "#d1d5db",
-};
+// ── Tiny SVG line chart ───────────────────────────────────────────────────────
+function MiniLineChart({ data, rangeLabel }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[140px] items-center justify-center text-[13px] text-slate-400">
+        No data for last {rangeLabel}
+      </div>
+    );
+  }
 
-// ─── Node Label Component ───────────────────────────────────────────────────
-function NodeLabel({ x, y, label, value, color, align = "left", barHeight }) {
-  const barWidth = 4;
-  const midY = y + barHeight / 2;
+  const W = 420;
+  const H = 100;
+  const PAD = { top: 8, right: 8, bottom: 24, left: 32 };
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+
+  const counts = data.map((d) => d.count);
+  const maxVal = Math.max(...counts, 1);
+  const minVal = 0;
+
+  const xStep = data.length > 1 ? innerW / (data.length - 1) : innerW;
+
+  const toX = (i) => PAD.left + (data.length > 1 ? i * xStep : innerW / 2);
+  const toY = (v) =>
+    PAD.top + innerH - ((v - minVal) / (maxVal - minVal)) * innerH;
+
+  const points = data.map((d, i) => `${toX(i)},${toY(d.count)}`).join(" ");
+  const fillPoints = [
+    `${toX(0)},${PAD.top + innerH}`,
+    ...data.map((d, i) => `${toX(i)},${toY(d.count)}`),
+    `${toX(data.length - 1)},${PAD.top + innerH}`,
+  ].join(" ");
+
+  // Show first, middle, last labels
+  const labelIndices = new Set([0, Math.floor(data.length / 2), data.length - 1]);
 
   return (
-    <g>
-      <rect
-        x={align === "right" ? x - barWidth : x}
-        y={y}
-        width={barWidth}
-        height={barHeight}
-        rx={2}
-        fill={color}
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      style={{ height: 140 }}
+      preserveAspectRatio="none"
+    >
+      {/* Y gridlines */}
+      {[0, 0.5, 1].map((t) => {
+        const y = PAD.top + innerH * (1 - t);
+        return (
+          <g key={t}>
+            <line
+              x1={PAD.left}
+              y1={y}
+              x2={PAD.left + innerW}
+              y2={y}
+              stroke="#e2e8f0"
+              strokeWidth={1}
+            />
+            <text
+              x={PAD.left - 4}
+              y={y + 4}
+              fontSize={9}
+              textAnchor="end"
+              fill="#94a3b8"
+            >
+              {Math.round(minVal + t * maxVal)}
+            </text>
+          </g>
+        );
+      })}
+      {/* Fill */}
+      <polygon points={fillPoints} fill="#2563eb" fillOpacity={0.08} />
+      {/* Line */}
+      <polyline
+        points={points}
+        fill="none"
+        stroke="#2563eb"
+        strokeWidth={2}
+        strokeLinejoin="round"
+        strokeLinecap="round"
       />
-      <text
-        x={align === "right" ? x - barWidth - 6 : x + barWidth + 6}
-        y={midY - 5}
-        textAnchor={align === "right" ? "end" : "start"}
-        dominantBaseline="middle"
-        className="fill-slate-600"
-        style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase" }}
-      >
-        {label}
-      </text>
-      <text
-        x={align === "right" ? x - barWidth - 6 : x + barWidth + 6}
-        y={midY + 7}
-        textAnchor={align === "right" ? "end" : "start"}
-        dominantBaseline="middle"
-        className="fill-slate-800"
-        style={{ fontSize: 9, fontWeight: 700 }}
-      >
-        {value}
-      </text>
-    </g>
+      {/* Dots + date labels */}
+      {data.map((d, i) => (
+        <g key={i}>
+          <circle cx={toX(i)} cy={toY(d.count)} r={3} fill="#2563eb" />
+          {labelIndices.has(i) && (
+            <text
+              x={toX(i)}
+              y={H - 4}
+              fontSize={8}
+              textAnchor="middle"
+              fill="#94a3b8"
+            >
+              {d.date?.slice(5)}
+            </text>
+          )}
+        </g>
+      ))}
+    </svg>
   );
 }
 
-// ─── Curved Link Path ───────────────────────────────────────────────────────
-function SankeyLink({ x0, y0, x1, y1, thickness, thickness0, thickness1, color, opacity = 0.18 }) {
-  const t0 = thickness0 ?? thickness;
-  const t1 = thickness1 ?? thickness;
-  const curvature = 0.5;
-  const xi = x0 + (x1 - x0) * curvature;
+// ── Tiny donut chart ──────────────────────────────────────────────────────────
+const STATUS_COLORS = {
+  completed: "#22c55e",
+  processing: "#f59e0b",
+  failed: "#ef4444",
+  pending: "#94a3b8",
+};
 
-  const d = `
-    M ${x0},${y0}
-    C ${xi},${y0} ${x1 - (x1 - x0) * curvature},${y1} ${x1},${y1}
-    L ${x1},${y1 + t1}
-    C ${x1 - (x1 - x0) * curvature},${y1 + t1} ${xi},${y0 + t0} ${x0},${y0 + t0}
-    Z
-  `;
+function DonutChart({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[140px] items-center justify-center text-[13px] text-slate-400">
+        No ingestion data
+      </div>
+    );
+  }
 
-  return <path d={d} fill={color} opacity={opacity} />;
-}
+  const total = data.reduce((s, d) => s + d.count, 0);
+  if (total === 0) {
+    return (
+      <div className="flex h-[140px] items-center justify-center text-[13px] text-slate-400">
+        No files yet
+      </div>
+    );
+  }
 
-// ─── Empty State ─────────────────────────────────────────────────────────────
-function EmptyFunnelState() {
-  const width = 1200;
-  const height = 400;
-  const colX = [30, 370, 680, 990];
-  const columns = [
-    { label: "SOURCE", x: colX[0] },
-    { label: "AI INVOLVEMENT", x: colX[1] },
-    { label: "RESOLUTION", x: colX[2] },
-    { label: "CX SCORE", x: colX[3] },
-  ];
+  const R = 40;
+  const CX = 55;
+  const CY = 55;
+  const HOLE = 22;
 
-  // Ghost bars per column
-  const ghostBars = [
-    [{ y: 40, h: 300 }],
-    [{ y: 40, h: 160 }, { y: 220, h: 120 }],
-    [{ y: 40, h: 80 }, { y: 140, h: 60 }, { y: 220, h: 80 }, { y: 320, h: 40 }],
-    [{ y: 40, h: 100 }, { y: 160, h: 80 }, { y: 260, h: 60 }, { y: 340, h: 30 }],
-  ];
+  let cumAngle = -Math.PI / 2;
+  const slices = data.map((d) => {
+    const angle = (d.count / total) * 2 * Math.PI;
+    const start = cumAngle;
+    cumAngle += angle;
+    return { ...d, start, end: cumAngle, angle };
+  });
+
+  const sector = (s) => {
+    const large = s.end - s.start > Math.PI ? 1 : 0;
+    const ox1 = CX + R * Math.cos(s.start);
+    const oy1 = CY + R * Math.sin(s.start);
+    const ox2 = CX + R * Math.cos(s.end);
+    const oy2 = CY + R * Math.sin(s.end);
+    const ix1 = CX + HOLE * Math.cos(s.end);
+    const iy1 = CY + HOLE * Math.sin(s.end);
+    const ix2 = CX + HOLE * Math.cos(s.start);
+    const iy2 = CY + HOLE * Math.sin(s.start);
+    return `M ${ox1} ${oy1} A ${R} ${R} 0 ${large} 1 ${ox2} ${oy2} L ${ix1} ${iy1} A ${HOLE} ${HOLE} 0 ${large} 0 ${ix2} ${iy2} Z`;
+  };
 
   return (
-    <div className="relative">
-      {/* Ghost SVG — faded skeleton */}
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="w-full opacity-[0.07]"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        {columns.map((col, ci) =>
-          ghostBars[ci].map((bar, bi) => (
-            <rect
-              key={`${ci}-${bi}`}
-              x={col.x}
-              y={bar.y}
-              width={4}
-              height={bar.h}
-              rx={2}
-              fill="#64748b"
-            />
-          ))
-        )}
-        {/* Ghost links — simple curved paths between columns */}
-        {[
-          { x0: 34, y0: 40, x1: colX[1], y1: 40, h0: 300, h1: 160 },
-          { x0: 34, y0: 200, x1: colX[1], y1: 220, h0: 100, h1: 120 },
-          { x0: colX[1] + 4, y0: 40, x1: colX[2], y1: 40, h0: 80, h1: 80 },
-          { x0: colX[1] + 4, y0: 220, x1: colX[2], y1: 140, h0: 60, h1: 60 },
-          { x0: colX[2] + 4, y0: 40, x1: colX[3], y1: 40, h0: 60, h1: 100 },
-        ].map((l, i) => {
-          const curvature = 0.5;
-          const xi = l.x0 + (l.x1 - l.x0) * curvature;
-          const d = `M ${l.x0},${l.y0} C ${xi},${l.y0} ${l.x1 - (l.x1 - l.x0) * curvature},${l.y1} ${l.x1},${l.y1} L ${l.x1},${l.y1 + l.h1} C ${l.x1 - (l.x1 - l.x0) * curvature},${l.y1 + l.h1} ${xi},${l.y0 + l.h0} ${l.x0},${l.y0 + l.h0} Z`;
-          return <path key={i} d={d} fill="#94a3b8" opacity={0.5} />;
-        })}
+    <div className="flex items-center gap-5">
+      <svg viewBox="0 0 110 110" style={{ width: 110, height: 110, flexShrink: 0 }}>
+        {slices.map((s, i) => (
+          <path
+            key={i}
+            d={sector(s)}
+            fill={STATUS_COLORS[s.status] ?? "#cbd5e1"}
+          />
+        ))}
+        <text
+          x={CX}
+          y={CY + 4}
+          textAnchor="middle"
+          fontSize={13}
+          fontWeight="bold"
+          fill="#1e293b"
+        >
+          {total}
+        </text>
       </svg>
-
-      {/* Overlay message */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-        <div className="rounded-full bg-blue-50 p-3">
-          <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-          </svg>
-        </div>
-        <p className="text-[13px] font-semibold text-slate-600">No conversation data yet</p>
-        <p className="max-w-xs text-center text-[11px] text-slate-400 leading-relaxed">
-          Once your chatbot starts handling conversations, your performance funnel will appear here — showing sources, AI involvement, resolution paths, and CX scores.
-        </p>
+      <div className="flex flex-col gap-1.5">
+        {slices.map((s, i) => (
+          <div key={i} className="flex items-center gap-2 text-[12px] text-slate-700">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ background: STATUS_COLORS[s.status] ?? "#cbd5e1" }}
+            />
+            <span className="capitalize">{s.status}</span>
+            <span className="font-semibold text-slate-900">{s.count}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-// ─── Main Component ─────────────────────────────────────────────────────────
-export default function PerformanceFunnel({ chatbotId, startDate, endDate }) {
+// ── Skeleton card ─────────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      <div className="mb-4 flex items-center gap-2">
+        <Skeleton className="h-5 w-5 rounded-full" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <div className="flex items-end justify-between">
+        <Skeleton className="h-8 w-16" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    </div>
+  );
+}
+
+// ── Animated counter ──────────────────────────────────────────────────────────
+function useCountUp(target, active, duration = 2000) {
+  const [value, setValue] = useState(0);
+  const raf = useRef(null);
+
+  useEffect(() => {
+    if (!active) {
+      setValue(0);
+      return;
+    }
+    const start = performance.now();
+    const animate = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      // easeOutCubic — fast start, slow finish
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(parseFloat((eased * target).toFixed(1)));
+      if (t < 1) raf.current = requestAnimationFrame(animate);
+    };
+    raf.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf.current);
+  }, [target, active, duration]);
+
+  return value;
+}
+
+// ── Animated stat value ───────────────────────────────────────────────────────
+function AnimatedValue({ target, suffix = "", loading }) {
+  const animated = useCountUp(target, !loading);
+  if (loading) return null;
+  const display = Number.isInteger(target) ? Math.round(animated) : animated.toFixed(1);
+  return <>{display}{suffix}</>;
+}
+
+// ── Messages trend bar chart ──────────────────────────────────────────────────
+const messagesTrendConfig = {
+  totalMessages: { label: "Messages", color: "#2563eb" },
+  positiveCount: { label: "Positive", color: "#22c55e" },
+  negativeCount: { label: "Negative", color: "#ef4444" },
+};
+
+function MessagesTrendChart({ data, rangeLabel, loading }) {
+  if (loading) return <Skeleton className="h-[220px] w-full" />;
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[220px] items-center justify-center text-[13px] text-slate-400">
+        No messages in last {rangeLabel}
+      </div>
+    );
+  }
+
+  const formatted = data.map((d) => ({ ...d, date: d.date?.slice(5) }));
+
+  return (
+    <ChartContainer config={messagesTrendConfig} className="h-[220px] w-full">
+      <BarChart data={formatted} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+        <CartesianGrid vertical={false} stroke="#f1f5f9" />
+        <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 10, fill: "#94a3b8" }}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 10, fill: "#94a3b8" }}
+          allowDecimals={false}
+        />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Bar dataKey="totalMessages" fill="var(--color-totalMessages)" radius={[3, 3, 0, 0]} maxBarSize={32} />
+        <Bar dataKey="positiveCount" fill="var(--color-positiveCount)" radius={[3, 3, 0, 0]} maxBarSize={32} />
+        <Bar dataKey="negativeCount" fill="var(--color-negativeCount)" radius={[3, 3, 0, 0]} maxBarSize={32} />
+      </BarChart>
+    </ChartContainer>
+  );
+}
+
+// ── Visitor countries pie chart ───────────────────────────────────────────────
+const COUNTRY_NAMES = {
+  US: "United States", IN: "India", GB: "United Kingdom", DE: "Germany",
+  FR: "France", CA: "Canada", AU: "Australia", JP: "Japan", BR: "Brazil",
+  CN: "China", RU: "Russia", KR: "South Korea", IT: "Italy", ES: "Spain",
+  MX: "Mexico", ID: "Indonesia", NL: "Netherlands", SA: "Saudi Arabia",
+  TR: "Turkey", PL: "Poland", Other: "Other",
+};
+function countryName(code) { return COUNTRY_NAMES[code] || code; }
+
+const COUNTRY_COLORS = [
+  "#2563eb", "#7c3aed", "#db2777", "#ea580c",
+  "#ca8a04", "#16a34a", "#0891b2", "#dc2626", "#6b7280",
+];
+
+function CustomCountryTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  const cities = item.payload.cities || [];
+  const topCities = cities.slice(0, 3);
+  const othersCount = cities.slice(3).reduce((s, c) => s + c.count, 0);
+
+  return (
+    <div className="border-border/50 bg-background min-w-[160px] rounded-lg border px-3 py-2 text-xs shadow-xl">
+      <p className="mb-1.5 font-semibold text-slate-800">{countryName(item.payload.country)}</p>
+      <p className="mb-1 text-slate-500">{item.value} unique visitor{item.value !== 1 ? "s" : ""}</p>
+      {topCities.length > 0 && (
+        <div className="mt-1.5 space-y-0.5 border-t border-slate-100 pt-1.5">
+          {topCities.map((c) => (
+            <div key={c.city} className="flex justify-between gap-3 text-slate-600">
+              <span>{c.city}</span>
+              <span className="font-medium text-slate-800">{c.count}</span>
+            </div>
+          ))}
+          {othersCount > 0 && (
+            <div className="flex justify-between gap-3 text-slate-400">
+              <span>Other</span>
+              <span>{othersCount}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VisitorCountriesChart({ data, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-5">
+        <Skeleton className="h-[160px] w-[160px] flex-shrink-0 rounded-full" />
+        <div className="flex flex-1 flex-col gap-2">
+          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-3.5 w-full" />)}
+        </div>
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[180px] items-center justify-center text-[13px] text-slate-400">
+        No visitor data yet
+      </div>
+    );
+  }
+
+  const total = data.reduce((s, d) => s + d.count, 0);
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex-shrink-0" style={{ width: 160, height: 160 }}>
+        <ChartContainer config={{}} className="h-[160px] w-[160px]">
+          <PieChart>
+            <Pie data={data} dataKey="count" nameKey="country" cx="50%" cy="50%" innerRadius={46} outerRadius={72} paddingAngle={2}>
+              {data.map((entry, index) => (
+                <Cell key={entry.country} fill={COUNTRY_COLORS[index % COUNTRY_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomCountryTooltip />} />
+          </PieChart>
+        </ChartContainer>
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        {data.map((d, i) => (
+          <div key={d.country} className="flex min-w-0 items-center gap-2 text-[12px] text-slate-700">
+            <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: COUNTRY_COLORS[i % COUNTRY_COLORS.length] }} />
+            <span className="flex-1 truncate">{countryName(d.country)}</span>
+            <span className="flex-shrink-0 font-semibold text-slate-900">{d.count}</span>
+            <span className="flex-shrink-0 text-slate-400">
+              {total > 0 ? `${Math.round((d.count / total) * 100)}%` : ""}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Ingestion sources pie chart ───────────────────────────────────────────────
+const SOURCE_LABELS = {
+  LOCAL_UPLOAD: "Local Upload",
+  YOUTUBE: "YouTube",
+  FIRECRAWL_CRAWL: "Web Crawl",
+  FIRECRAWL_BULK: "Bulk Scrape",
+  FIRECRAWL_SITEMAP: "Sitemap",
+  GOOGLE_DRIVE: "Google Drive",
+  DROPBOX: "Dropbox",
+  Other: "Other",
+};
+
+const SOURCE_COLORS = [
+  "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4",
+  "#10b981", "#f97316", "#6366f1", "#6b7280",
+];
+
+function CustomSourceTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  return (
+    <div className="border-border/50 bg-background rounded-lg border px-3 py-2 text-xs shadow-xl">
+      <p className="font-semibold text-slate-800">{SOURCE_LABELS[item.payload.source] || item.payload.source}</p>
+      <p className="mt-0.5 text-slate-500">{item.value} file{item.value !== 1 ? "s" : ""}</p>
+    </div>
+  );
+}
+
+function IngestionSourcesChart({ data, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-5">
+        <Skeleton className="h-[160px] w-[160px] flex-shrink-0 rounded-full" />
+        <div className="flex flex-1 flex-col gap-2">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-3.5 w-full" />)}
+        </div>
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[180px] items-center justify-center text-[13px] text-slate-400">
+        No ingestion sources yet
+      </div>
+    );
+  }
+
+  const total = data.reduce((s, d) => s + d.count, 0);
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex-shrink-0" style={{ width: 160, height: 160 }}>
+        <ChartContainer config={{}} className="h-[160px] w-[160px]">
+          <PieChart>
+            <Pie data={data} dataKey="count" nameKey="source" cx="50%" cy="50%" innerRadius={46} outerRadius={72} paddingAngle={2}>
+              {data.map((entry, index) => (
+                <Cell key={entry.source} fill={SOURCE_COLORS[index % SOURCE_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomSourceTooltip />} />
+          </PieChart>
+        </ChartContainer>
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        {data.map((d, i) => (
+          <div key={d.source} className="flex min-w-0 items-center gap-2 text-[12px] text-slate-700">
+            <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: SOURCE_COLORS[i % SOURCE_COLORS.length] }} />
+            <span className="flex-1 truncate">{SOURCE_LABELS[d.source] || d.source}</span>
+            <span className="flex-shrink-0 font-semibold text-slate-900">{d.count}</span>
+            <span className="flex-shrink-0 text-slate-400">
+              {total > 0 ? `${Math.round((d.count / total) * 100)}%` : ""}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Date ranges ───────────────────────────────────────────────────────────────
+const DATE_RANGES = [
+  { label: "7 days", days: 7 },
+  { label: "30 days", days: 30 },
+  { label: "60 days", days: 60 },
+  { label: "3 months", days: 90 },
+  { label: "6 months", days: 180 },
+  { label: "1 year", days: 365 },
+];
+
+// ── Main component ────────────────────────────────────────────────────────────
+export default function PerformanceFunnel() {
+  const { selectedChatbot } = useChatbot();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [rangeDays, setRangeDays] = useState(30);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const params = {};
-        const today = new Date();
-        const thirtyDaysAgo = new Date(today);
-        thirtyDaysAgo.setDate(today.getDate() - 30);
-        params.startDate = startDate || thirtyDaysAgo.toISOString().split("T")[0];
-        params.endDate = endDate || today.toISOString().split("T")[0];
-        if (chatbotId) params.chatbotId = chatbotId;
+    if (!selectedChatbot?.id) return;
+    setLoading(true);
+    setError(null);
+    api
+      .get(`/usage/chatbot/${selectedChatbot.id}/overview`, { params: { days: rangeDays } })
+      .then((res) => setData(res.data?.data ?? null))
+      .catch(() => setError("Failed to load dashboard data"))
+      .finally(() => setLoading(false));
+  }, [selectedChatbot?.id, rangeDays]);
 
-        const res = await api.get("/usage/dashboard-overview", { params });
-        if (res?.data?.success) {
-          setData(res.data.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch dashboard overview:", err);
-        setError("Failed to load performance data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [chatbotId, startDate, endDate]);
+  if (!selectedChatbot) return null;
 
-  // ─── Build Sankey Data ──────────────────────────────────────────────────
-  const sankeyData = useMemo(() => {
-    if (!data) return null;
+  const cards = data?.cards ?? {};
+  const trend = data?.charts?.conversationsTrend ?? [];
+  const ingestionStatus = data?.charts?.ingestionStatus ?? [];
+  const messagesTrend = data?.charts?.messagesTrend ?? [];
+  const visitorCountries = data?.charts?.visitorCountries ?? [];
+  const ingestionSources = data?.charts?.ingestionSources ?? [];
 
-    const { platformBreakdown, resolutionFunnel, cxScores, resolutionToCx } = data;
+  const statCards = [
+    {
+      label: "Total Links",
+      icon: <LinkIcon className="h-5 w-5 text-blue-600" />,
+      rawValue: cards.totalLinks ?? 0,
+      link: "/website-links",
+      linkLabel: "View All Links",
+    },
+    {
+      label: "Total Files",
+      icon: <FileText className="h-5 w-5 text-blue-600" />,
+      rawValue: cards.totalFiles ?? 0,
+      link: "/website-files",
+      linkLabel: "View All Files",
+    },
+    {
+      label: "Total Custom Responses",
+      icon: <Quote className="h-5 w-5 text-blue-600" />,
+      rawValue: cards.totalCustomResponses ?? 0,
+      link: "/custom-responses",
+      linkLabel: "View All Responses",
+    },
+    {
+      label: "Total Messages",
+      icon: <CalendarDays className="h-5 w-5 text-blue-600" />,
+      rawValue: cards.totalMessages ?? 0,
+      link: "/chat-history",
+      linkLabel: "View Chat History",
+    },
+    {
+      label: "Positive Feedback",
+      icon: <ThumbsUp className="h-5 w-5 fill-green-500 text-green-500" />,
+      rawValue: cards.positiveFeedbackPct ?? 0,
+      suffix: "%",
+      link: "/chat-history?threadId=4613302e-a882-44c8-94b0-3bb7169a6f88&status=all&feedback=positive",
+      linkLabel: "View Feedback",
+    },
+    {
+      label: "Negative Feedback",
+      icon: <ThumbsDown className="h-5 w-5 fill-red-500 text-red-500" />,
+      rawValue: cards.negativeFeedbackPct ?? 0,
+      suffix: "%",
+      link: "/chat-history?threadId=4613302e-a882-44c8-94b0-3bb7169a6f88&status=all&feedback=negative",
+      linkLabel: "View Feedback",
+    },
+    {
+      label: "Total Pages Consumed",
+      icon: <LayoutTemplate className="h-5 w-5 text-blue-600" />,
+      labelExtra: <Info className="h-3.5 w-3.5 text-slate-400" />,
+      rawValue: cards.totalPagesConsumed ?? 0,
+    },
+  ];
 
-    // Guard against missing API data shapes
-    const funnel = resolutionFunnel || {};
-    const cx = cxScores || {};
-
-    const platforms =
-      platformBreakdown && platformBreakdown.length > 0
-        ? platformBreakdown.map((p) => ({
-            id: p.platform || p.name,
-            label: (p.platform || p.name || "unknown").toUpperCase(),
-            value: p.count || p.total || 0,
-            color: COLORS[(p.platform || p.name || "").toLowerCase()] || COLORS.chat,
-          }))
-        : [
-            {
-              id: "chat",
-              label: "CHAT",
-              value: funnel.totalConversations || 0,
-              color: COLORS.chat,
-            },
-          ];
-
-    const involvement = [
-      { id: "finInvolved", label: "C-GPT INVOLVED", value: funnel.aiInvolved || 0, color: COLORS.finInvolved },
-      { id: "finNotInvolved", label: "C-GPT NOT INVOLVED", value: funnel.aiNotInvolved || 0, color: COLORS.finNotInvolved },
-    ];
-
-    const resolutionAll = [
-      { id: "resolvedByAi", label: "RESOLVED BY C-GPT", value: funnel.resolvedByAi || 0, color: COLORS.resolvedByFin },
-      { id: "resolvedByHuman", label: "RESOLVED BY HUMAN", value: funnel.resolvedByHuman || 0, color: COLORS.resolvedByHuman },
-      { id: "escalatedResolved", label: "ESCALATED & RESOLVED", value: funnel.escalatedResolved || 0, color: COLORS.escalatedResolved },
-      { id: "escalatedUnresolved", label: "SENT TO TEAMMATE", value: funnel.escalatedUnresolved || 0, color: COLORS.escalatedUnresolved },
-      { id: "abandoned", label: "ABANDONED", value: funnel.abandoned || 0, color: COLORS.abandoned },
-      { id: "unresolved", label: "UNRESOLVED", value: funnel.unresolved || 0, color: COLORS.unresolved },
-    ];
-    const resolution = resolutionAll.filter((n) => n.value > 0);
-
-    const scoresAll = [
-      { id: "positive", label: "POSITIVE CX SCORE", value: cx.positive || 0, color: COLORS.positive },
-      { id: "neutral", label: "NEUTRAL CX SCORE", value: cx.neutral || 0, color: COLORS.neutral },
-      { id: "negative", label: "NEGATIVE CX SCORE", value: cx.negative || 0, color: COLORS.negative },
-      { id: "noFeedback", label: "NO FEEDBACK", value: cx.noFeedback || 0, color: COLORS.noFeedback },
-    ];
-    const scores = scoresAll.filter((n) => n.value > 0);
-
-    const resCxMap = {};
-    (resolutionToCx || []).forEach((r) => {
-      const key = `${r.resolution}__${r.cxCategory}`;
-      resCxMap[key] = (resCxMap[key] || 0) + r.count;
-    });
-
-    return { platforms, involvement, resolution, scores, resCxMap };
-  }, [data]);
-
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-slate-200 bg-white">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm text-red-500">
-        {error}
-      </div>
-    );
-  }
-
-  if (!sankeyData) return null;
+  const activeRange = DATE_RANGES.find((r) => r.days === rangeDays);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-[#f0f0f0] p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-      <h3 className="mb-4 text-[15px] font-bold text-slate-900">Performance funnel</h3>
-      <SankeyChart data={sankeyData} />
-    </div>
-  );
-}
+    <div className="space-y-6 -mt-10">
+      {/* ── Date range selector ── */}
+      <div className="flex items-center justify-end">
+        <Select value={String(rangeDays)} onValueChange={(v) => setRangeDays(Number(v))}>
+          <SelectTrigger className="w-[140px] text-[12.5px] font-semibold">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DATE_RANGES.map((r) => (
+              <SelectItem key={r.days} value={String(r.days)} className="text-[12.5px]">
+                Last {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-// ─── SVG Sankey Chart ───────────────────────────────────────────────────────
-function SankeyChart({ data }) {
-  const { platforms, involvement, resolution, scores, resCxMap } = data;
-  const svgRef = useRef(null);
-  const [revealed, setRevealed] = useState(false);
+      {error && (
+        <p className="text-[13px] text-red-500">{error}</p>
+      )}
 
-  const width = 1200;
-  const height = 400;
-  const colX = [30, 370, 680, 990];
-  const nodeGap = 20;
-  const topPadding = 10;
-  const minNodeHeight = 10;
+      {/* ── Stat cards ── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {loading
+          ? Array.from({ length: 7 }).map((_, i) => <SkeletonCard key={i} />)
+          : statCards.map((card) => (
+              <div
+                key={card.label}
+                className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {card.icon}
+                    <span className="flex items-center gap-1.5 text-[13px] font-bold text-slate-800">
+                      {card.label}
+                      {card.labelExtra}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-end justify-between">
+                  <span className="text-[26.5px] leading-none font-extrabold text-slate-900">
+                    <AnimatedValue target={card.rawValue} suffix={card.suffix} loading={loading} />
+                  </span>
+                  {card.link && (
+                    <Link
+                      href={card.link}
+                      className="flex items-center text-[12.5px] font-semibold text-blue-600 transition-colors hover:text-blue-800"
+                    >
+                      {card.linkLabel}{" "}
+                      <ChevronRight className="ml-1 h-3 w-3" strokeWidth={2.5} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
+      </div>
 
-  const totalValue = Math.max(
-    platforms.reduce((s, n) => s + n.value, 0),
-    involvement.reduce((s, n) => s + n.value, 0),
-    resolution.reduce((s, n) => s + n.value, 0),
-    scores.reduce((s, n) => s + n.value, 0),
-    1,
-  );
+      {/* ── Charts row ── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Conversations trend */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <h3 className="mb-3 text-[13px] font-bold text-slate-800">
+            Conversations — Last {activeRange?.label}
+          </h3>
+          {loading ? (
+            <Skeleton className="h-[140px] w-full" />
+          ) : (
+            <MiniLineChart data={trend} rangeLabel={activeRange?.label} />
+          )}
+        </div>
 
-  const availableHeight = height - topPadding * 2;
+        {/* Ingestion status */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <h3 className="mb-3 text-[13px] font-bold text-slate-800">
+            Knowledge Base Status
+          </h3>
+          {loading ? (
+            <div className="flex items-center gap-5">
+              <Skeleton className="h-[110px] w-[110px] rounded-full" />
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-3.5 w-24" />
+                <Skeleton className="h-3.5 w-20" />
+                <Skeleton className="h-3.5 w-16" />
+              </div>
+            </div>
+          ) : (
+            <DonutChart data={ingestionStatus} />
+          )}
+        </div>
+      </div>
 
-  function layoutNodes(nodes, x) {
-    const totalNodeValue = nodes.reduce((s, n) => s + n.value, 0) || 1;
-    const totalGaps = (nodes.length - 1) * nodeGap;
-    const usableHeight = availableHeight - totalGaps;
+      {/* ── Messages trend bar chart (full width) ── */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <h3 className="mb-1 text-[13px] font-bold text-slate-800">
+          Messages Trend — Last {activeRange?.label}
+        </h3>
+        <p className="mb-4 text-[11.5px] text-slate-400">
+          Daily user messages with positive and negative feedback counts
+        </p>
+        <MessagesTrendChart data={messagesTrend} rangeLabel={activeRange?.label} loading={loading} />
+      </div>
 
-    let yOffset = topPadding;
-    return nodes.map((node) => {
-      const ratio = totalNodeValue > 0 ? node.value / totalNodeValue : 1 / nodes.length;
-      const h = Math.max(minNodeHeight, ratio * usableHeight);
-      const result = { ...node, x, y: yOffset, height: h };
-      yOffset += h + nodeGap;
-      return result;
-    });
-  }
+      {/* ── Charts row 2: visitor countries + ingestion sources ── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <h3 className="mb-1 text-[13px] font-bold text-slate-800">
+            Visitors by Country
+          </h3>
+          <p className="mb-4 text-[11.5px] text-slate-400">
+            Unique visitors — top 8 countries, hover for top cities
+          </p>
+          <VisitorCountriesChart data={visitorCountries} loading={loading} />
+        </div>
 
-  const col0 = layoutNodes(platforms, colX[0]);
-  const col1 = layoutNodes(involvement, colX[1]);
-  const col2 = layoutNodes(resolution, colX[2]);
-  const col3 = layoutNodes(scores, colX[3]);
-
-  function buildLinks(sourceNodes, targetNodes, sourceX, targetX) {
-    const links = [];
-    const targetTotal = targetNodes.reduce((s, n) => s + n.value, 0) || 1;
-    const sourceOffsets = sourceNodes.map((n) => n.y);
-    const targetOffsets = targetNodes.map((n) => n.y);
-
-    for (let si = 0; si < sourceNodes.length; si++) {
-      const src = sourceNodes[si];
-      if (src.value === 0) continue;
-      for (let ti = 0; ti < targetNodes.length; ti++) {
-        const tgt = targetNodes[ti];
-        if (tgt.value === 0) continue;
-
-        const flowValue = (src.value * tgt.value) / targetTotal;
-        if (flowValue <= 0) continue;
-
-        const srcThickness = (flowValue / src.value) * src.height;
-        const tgtThickness = (flowValue / tgt.value) * tgt.height;
-
-        links.push({
-          x0: sourceX + 4, y0: sourceOffsets[si],
-          x1: targetX, y1: targetOffsets[ti],
-          thickness0: Math.max(srcThickness, 2),
-          thickness1: Math.max(tgtThickness, 2),
-          color: src.color,
-        });
-
-        sourceOffsets[si] += srcThickness;
-        targetOffsets[ti] += tgtThickness;
-      }
-    }
-    return links;
-  }
-
-  function buildCrossTabLinks(sourceNodes, targetNodes, sourceX, targetX, crossTabMap) {
-    const links = [];
-    const sourceOffsets = sourceNodes.map((n) => n.y);
-    const targetOffsets = targetNodes.map((n) => n.y);
-
-    for (let si = 0; si < sourceNodes.length; si++) {
-      const src = sourceNodes[si];
-      if (src.value === 0) continue;
-      for (let ti = 0; ti < targetNodes.length; ti++) {
-        const tgt = targetNodes[ti];
-        if (tgt.value === 0) continue;
-
-        const flowValue = crossTabMap[`${src.id}__${tgt.id}`] || 0;
-        if (flowValue <= 0) continue;
-
-        const srcThickness = (flowValue / src.value) * src.height;
-        const tgtThickness = (flowValue / tgt.value) * tgt.height;
-
-        links.push({
-          x0: sourceX + 4, y0: sourceOffsets[si],
-          x1: targetX, y1: targetOffsets[ti],
-          thickness0: Math.max(srcThickness, 2),
-          thickness1: Math.max(tgtThickness, 2),
-          color: src.color,
-        });
-
-        sourceOffsets[si] += srcThickness;
-        targetOffsets[ti] += tgtThickness;
-      }
-    }
-    return links;
-  }
-
-  const links0 = buildLinks(col0, col1, colX[0], colX[1]);
-  const links1 = buildLinks(col1, col2, colX[1], colX[2]);
-  const links2 = buildCrossTabLinks(col2, col3, colX[2], colX[3], resCxMap);
-  const allLinks = [...links0, ...links1, ...links2];
-
-  const allZero =
-    totalValue === 0 ||
-    (platforms.every((n) => n.value === 0) &&
-      involvement.every((n) => n.value === 0) &&
-      resolution.every((n) => n.value === 0) &&
-      scores.every((n) => n.value === 0));
-
-  if (allZero) {
-    return <EmptyFunnelState />;
-  }
-
-  // Trigger reveal animation after mount
-  useEffect(() => {
-    const t = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setRevealed(true));
-    });
-    return () => cancelAnimationFrame(t);
-  }, []);
-
-  return (
-    <div className="relative overflow-hidden">
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${width} ${height}`}
-        className="w-full"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        {/* Clip path for left-to-right reveal animation */}
-        <defs>
-          <clipPath id="reveal-clip">
-            <rect
-              x={0}
-              y={0}
-              width={revealed ? width : 0}
-              height={height}
-              style={{
-                transition: revealed ? "width 1.1s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
-              }}
-            />
-          </clipPath>
-        </defs>
-
-        <g clipPath="url(#reveal-clip)">
-          {/* Links */}
-          {allLinks.map((link, i) => (
-            <SankeyLink key={i} {...link} />
-          ))}
-
-          {/* Nodes */}
-          {[...col0, ...col1, ...col2, ...col3].map((node) => (
-            <NodeLabel
-              key={node.id}
-              x={node.x}
-              y={node.y}
-              label={node.label}
-              value={node.value}
-              color={node.color}
-              align="left"
-              barHeight={node.height}
-            />
-          ))}
-        </g>
-      </svg>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <h3 className="mb-1 text-[13px] font-bold text-slate-800">
+            Knowledge Base Sources
+          </h3>
+          <p className="mb-4 text-[11.5px] text-slate-400">
+            Files grouped by ingestion type
+          </p>
+          <IngestionSourcesChart data={ingestionSources} loading={loading} />
+        </div>
+      </div>
     </div>
   );
 }

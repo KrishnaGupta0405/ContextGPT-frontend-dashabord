@@ -24,6 +24,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useChatbot } from "@/context/ChatbotContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
 import { PlayCircle, UploadCloud, Type } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -672,7 +673,124 @@ const BasicTab = () => {
       </div>
 
       {isLoading ? (
-        <div className="py-20 text-center text-slate-500">Loading settings...</div>
+        <div className="space-y-12 pb-10">
+          {/* Content section */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Content</h2>
+              <p className="text-sm text-slate-500">The text shown inside your chatbot.</p>
+            </div>
+            <div className="max-w-3xl space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-slate-700">Chatbot Name <span className="text-red-500">*</span></Label>
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-slate-700">Tooltip</Label>
+                <Skeleton className="h-20 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-slate-700">Welcome Message</Label>
+                <Skeleton className="h-20 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-slate-700">Input Placeholder Text</Label>
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-slate-700">External Link</Label>
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </section>
+
+          <hr className="border-slate-200" />
+
+          {/* Chat Interface section */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Chat Interface</h2>
+              <p className="text-sm text-slate-500">Colors, typography, and theme settings for the chat window.</p>
+            </div>
+            <div className="max-w-3xl space-y-5">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Primary Color</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Text Color</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Icon Background Color</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Link Color</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Font Size (px)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Chat Height (%)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Default Color Mode</Label>
+                  <Skeleton className="h-10 w-1/2" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <hr className="border-slate-200" />
+
+          {/* Chat Launcher section */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Chat Launcher</h2>
+              <p className="text-sm text-slate-500">The floating bubble that opens your chat widget.</p>
+            </div>
+            <div className="max-w-3xl space-y-5">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Distance from Bottom - Desktop (px)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Horizontal Distance - Desktop (px)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Distance from Bottom - Mobile (px)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Horizontal Distance - Mobile (px)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Icon Size</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Icon Position</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Icon Shape</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       ) : (
         <div className="space-y-12 pb-10">
 

@@ -28,6 +28,7 @@ import {
   ChevronUp,
   Check,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Predefined default personas provided by the user
 const DEFAULT_PERSONAS = [
@@ -256,11 +257,13 @@ const PersonasTab = () => {
     defaultValues,
   });
 
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
+
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchPersonas();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   useEffect(() => {
     return () => markClean();
@@ -446,14 +449,6 @@ const PersonasTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-5xl pb-24">
       {/* Default Personas Section */}
@@ -468,20 +463,35 @@ const PersonasTab = () => {
         </div>
 
         <div className="md:col-span-3">
-          {defaultList.map((persona) => (
-            <PersonaCard
-              key={persona.id || persona.title}
-              persona={persona}
-              isSelected={selectedPersonaId === persona.id}
-              onSelect={(p) => { setSelectedPersonaId(p.id); markDirty(); }}
-              isExpanded={expandedCardId === persona.id}
-              onToggleExpand={() =>
-                setExpandedCardId(
-                  expandedCardId === persona.id ? null : persona.id,
-                )
-              }
-            />
-          ))}
+          {initialLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="mb-4 rounded-[10px] border border-gray-200 bg-white p-5">
+                <div className="flex items-start gap-4">
+                  <Skeleton className="mt-0.5 h-[18px] w-[18px] rounded-full shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-64" />
+                    <Skeleton className="mt-2 h-3 w-20" />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            defaultList.map((persona) => (
+              <PersonaCard
+                key={persona.id || persona.title}
+                persona={persona}
+                isSelected={selectedPersonaId === persona.id}
+                onSelect={(p) => { setSelectedPersonaId(p.id); markDirty(); }}
+                isExpanded={expandedCardId === persona.id}
+                onToggleExpand={() =>
+                  setExpandedCardId(
+                    expandedCardId === persona.id ? null : persona.id,
+                  )
+                }
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -497,17 +507,30 @@ const PersonasTab = () => {
         </div>
 
         <div className="md:col-span-3">
-          {!isEditingCustom && (
-            <div className="mb-6">
-              <Button
-                variant="outline"
-                onClick={handleAddNewCustom}
-                className="h-10 rounded-[8px] bg-white px-4 font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Add New Persona
-              </Button>
+          {initialLoading ? (
+            <div className="mb-4 rounded-[10px] border border-gray-200 bg-white p-5">
+              <div className="flex items-start gap-4">
+                <Skeleton className="mt-0.5 h-[18px] w-[18px] rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-3 w-52" />
+                  <Skeleton className="mt-2 h-3 w-20" />
+                </div>
+              </div>
             </div>
-          )}
+          ) : (
+            <>
+              {!isEditingCustom && (
+                <div className="mb-6">
+                  <Button
+                    variant="outline"
+                    onClick={handleAddNewCustom}
+                    className="h-10 rounded-[8px] bg-white px-4 font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Add New Persona
+                  </Button>
+                </div>
+              )}
 
           {/* Form for Creating/Editing Custom Persona */}
           {isEditingCustom && (
@@ -627,30 +650,32 @@ const PersonasTab = () => {
             </div>
           )}
 
-          {/* List of Custom Personas */}
-          {!isEditingCustom && customList.length === 0 && (
-            <div className="text-[14px] text-gray-500">
-              No custom personas created yet.
-            </div>
-          )}
+              {/* List of Custom Personas */}
+              {!isEditingCustom && customList.length === 0 && (
+                <div className="text-[14px] text-gray-500">
+                  No custom personas created yet.
+                </div>
+              )}
 
-          {!isEditingCustom &&
-            customList.map((persona) => (
-              <PersonaCard
-                key={persona.id}
-                persona={persona}
-                isSelected={selectedPersonaId === persona.id}
-                onSelect={(p) => { setSelectedPersonaId(p.id); markDirty(); }}
-                isExpanded={expandedCardId === persona.id}
-                onToggleExpand={() =>
-                  setExpandedCardId(
-                    expandedCardId === persona.id ? null : persona.id,
-                  )
-                }
-                onEdit={handleEditCustom}
-                onDelete={handleDeleteCustom}
-              />
-            ))}
+              {!isEditingCustom &&
+                customList.map((persona) => (
+                  <PersonaCard
+                    key={persona.id}
+                    persona={persona}
+                    isSelected={selectedPersonaId === persona.id}
+                    onSelect={(p) => { setSelectedPersonaId(p.id); markDirty(); }}
+                    isExpanded={expandedCardId === persona.id}
+                    onToggleExpand={() =>
+                      setExpandedCardId(
+                        expandedCardId === persona.id ? null : persona.id,
+                      )
+                    }
+                    onEdit={handleEditCustom}
+                    onDelete={handleDeleteCustom}
+                  />
+                ))}
+            </>
+          )}
         </div>
       </div>
 

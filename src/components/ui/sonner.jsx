@@ -30,25 +30,25 @@ const Toaster = ({ ...props }) => {
         "--normal-border": "var(--border)",
         "--border-radius": "var(--radius)",
 
-        // Success – soft green
-        "--success-bg": "#ecfdf5",
-        "--success-text": "#065f46",
-        "--success-border": "#a7f3d0",
+        // Success – modern green
+        "--success-bg": "#f0fdf4",
+        "--success-text": "#166534",
+        "--success-border": "#86efac",
 
-        // Info – soft blue
-        "--info-bg": "#eff6ff",
-        "--info-text": "#1e40af",
-        "--info-border": "#bfdbfe",
+        // Info – modern blue
+        "--info-bg": "#f0f9ff",
+        "--info-text": "#0c4a6e",
+        "--info-border": "#7dd3fc",
 
-        // Warning – soft amber
-        "--warning-bg": "#fffbeb",
-        "--warning-text": "#92400e",
-        "--warning-border": "#fde68a",
+        // Warning – modern amber
+        "--warning-bg": "#fefce8",
+        "--warning-text": "#7c2d12",
+        "--warning-border": "#fcd34d",
 
-        // Error – soft red
+        // Error – modern red
         "--error-bg": "#fef2f2",
-        "--error-text": "#991b1b",
-        "--error-border": "#fecaca",
+        "--error-text": "#7f1d1d",
+        "--error-border": "#fca5a5",
       }}
       closeButton={true}
       {...props}

@@ -1,5 +1,45 @@
 "use client";
 
+// {
+//     "statusCode": 200,
+//     "data": {
+//         "user": {
+//             "id": "7dbd4340-2b59-41cd-9f24-efd3555156d0",
+//             "email": "krishnagupta0405@gmail.com",
+//             "name": "krishna gupta",
+//             "avatar": "https://ik.imagekit.io/contextgpt/usersAvatar/0f72fb048f8549c23904d6786a9f455aef29bc76906d94ba1dc0e3841342ee46__eG6kZMsy.svg"
+//         },
+//         "account": {
+//             "id": "09a39f44-2431-47a9-bffb-3a27488cacd2",
+//             "name": "krishna gupta's Account",
+//             "role": "SUPER_ADMIN"
+//         },
+//         "subscription": {
+        //     "id": "97050557-f02b-4799-8c29-3816d3e85af7",
+        //     "status": "active",
+        //     "planType": "pri_growth_montly_nt",
+        //     "isTrial": false,
+        //     "maxChatbotsAllowed": 2,
+        //     "maxPagesAllowed": 10000,
+        //     "teamMemberAccess": 4,
+        //     "apiAccess": true,
+        //     "webhookSupport": false, 
+        //     "autoScanData": false,
+        //     "autoScanDataOccurrence": null,
+        //     "autoRefreshData": true,
+        //     "autoRefreshDataOccurrence": "monthly",
+        //     "platformIntegrationAllowed": false,
+        //     "conversationLimit": 20,
+        //     "currentPeriodEnd": "2026-07-11 21:28:35.363578-07"
+        // },
+//         "accessToken": "eyJhbGc...",
+//         "refreshToken": "eyJhb...",
+//         "sessionId": "41c4dae0-9761-468c-986e-2901d6bbd94d"
+//     },
+//     "message": "User logged in successfully",
+//     "success": true
+// }
+
 import React, {
   createContext,
   useCallback,
@@ -18,6 +58,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [account, setAccount] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const isLoggingOut = useRef(false);
@@ -37,8 +78,10 @@ export const AuthProvider = ({ children }) => {
       .finally(() => {
         setUser(null);
         setAccount(null);
+        setSubscription(null);
         localStorage.removeItem("user");
         localStorage.removeItem("account");
+        localStorage.removeItem("subscription");
         localStorage.removeItem("selectedChatbot");
         // posthog.reset();
         isLoggingOut.current = false;
@@ -55,11 +98,15 @@ export const AuthProvider = ({ children }) => {
     // Rehydrate from localStorage for an instant UI
     const storedUser = localStorage.getItem("user");
     const storedAccount = localStorage.getItem("account");
+    const storedSubscription = localStorage.getItem("subscription");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
     if (storedAccount) {
       setAccount(JSON.parse(storedAccount));
+    }
+    if (storedSubscription) {
+      setSubscription(JSON.parse(storedSubscription));
     }
 
     // Background session verification — confirms the backend session is still valid
@@ -86,24 +133,34 @@ export const AuthProvider = ({ children }) => {
           // }
         }
       })
-      .catch(() => {
-        // 401 or any error — session is gone, wipe everything
-        setUser(null);
-        setAccount(null);
-        localStorage.removeItem("user");
-        localStorage.removeItem("account");
-        localStorage.removeItem("selectedChatbot");
+      .catch((err) => {
+        // Only wipe the session on an explicit 401 (invalid/expired token).
+        // Network errors, timeouts, or server-down states should not log the user out —
+        // the locally-stored session may still be valid once the server comes back.
+        if (err?.response?.status === 401) {
+          setUser(null);
+          setAccount(null);
+          setSubscription(null);
+          localStorage.removeItem("user");
+          localStorage.removeItem("account");
+          localStorage.removeItem("subscription");
+          localStorage.removeItem("selectedChatbot");
+        }
       })
       .finally(() => {
         setLoading(false);
       });
   }, []);
 
-  const login = (userData, accountData) => {
+  const login = (userData, accountData, subscriptionData) => {
     setUser(userData);
     setAccount(accountData);
+    setSubscription(subscriptionData || null); 
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("account", JSON.stringify(accountData));
+    if (subscriptionData) {
+      localStorage.setItem("subscription", JSON.stringify(subscriptionData));
+    }
     // try {
     //   posthog.identify(userData.id, {
     //     email: userData.email,
@@ -118,7 +175,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, account, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, account, subscription, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

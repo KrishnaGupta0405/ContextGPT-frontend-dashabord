@@ -55,13 +55,16 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Only handle 401 errors, skip if this is already a retry or an auth request
+    // Also skip endpoints that are intentionally called without auth (e.g. pricing page
+    // checks subscription silently — a 401 there should not trigger a logout redirect)
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
       originalRequest.url === "/auth/refresh-token" ||
       originalRequest.url === "/auth/login" ||
       originalRequest.url === "/auth/logout" ||
-      originalRequest.url === "/users/current-user"
+      originalRequest.url === "/users/current-user" ||
+      originalRequest.url === "/billing/subscription/current"
     ) {
       return Promise.reject(error);
     }

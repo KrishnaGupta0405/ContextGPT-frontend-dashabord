@@ -32,12 +32,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -66,6 +60,8 @@ import { toast } from "sonner";
 import { useChatbot } from "@/context/ChatbotContext";
 import { useChattingSocket } from "@/context/ChattingSocketContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
+import { useAuth } from "@/context/AuthContext";
+import { usePlanUpgradeNotification } from "@/components/PlanUpgradeNotification";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -229,7 +225,11 @@ export default function WebhooksPage() {
   const { selectedChatbot } = useChatbot();
   const { send, addListener } = useChattingSocket();
   const { markDirty, markClean } = useUnsavedChanges();
+  const { subscription } = useAuth();
+  const { showNotification } = usePlanUpgradeNotification();
   const chatbotId = selectedChatbot?.id;
+  const webhookSupported = subscription?.webhookSupport ?? false;
+  const isStarterPlan = subscription?.planType?.includes("starter") ?? false;
 
   // Config state
   const [webhook, setWebhook] = useState(null);
@@ -312,6 +312,10 @@ export default function WebhooksPage() {
 
   const loadWebhook = useCallback(async () => {
     if (!chatbotId) return;
+    if (isStarterPlan) {
+      setConfigLoading(false);
+      return;
+    }
     setConfigLoading(true);
     try {
       const res = await api.get(`/webhooks/${chatbotId}`);
@@ -328,7 +332,7 @@ export default function WebhooksPage() {
     } finally {
       setConfigLoading(false);
     }
-  }, [chatbotId]);
+  }, [chatbotId, isStarterPlan]);
 
   useEffect(() => {
     loadWebhook();
@@ -338,6 +342,10 @@ export default function WebhooksPage() {
 
   const loadDeliveries = useCallback(async () => {
     if (!chatbotId) return;
+    if (isStarterPlan) {
+      setDeliveriesLoading(false);
+      return;
+    }
     setDeliveriesLoading(true);
     try {
       const params = { page, limit: 20 };
@@ -351,7 +359,7 @@ export default function WebhooksPage() {
     } finally {
       setDeliveriesLoading(false);
     }
-  }, [chatbotId, page, statusFilter, eventTypeFilter]);
+  }, [chatbotId, page, statusFilter, eventTypeFilter, isStarterPlan]);
 
   useEffect(() => {
     loadDeliveries();
@@ -365,6 +373,11 @@ export default function WebhooksPage() {
   // ── Save webhook ─────────────────────────────────────────────────────────
 
   const handleSave = async () => {
+    if (!webhookSupported || isStarterPlan) {
+      showNotification("webhooks");
+      return;
+    }
+
     if (!url.trim()) {
       toast.error("Webhook URL is required");
       return;
@@ -421,6 +434,11 @@ export default function WebhooksPage() {
   // ── Toggle webhook ───────────────────────────────────────────────────────
 
   const handleToggle = async (newValue) => {
+    if (!webhookSupported || isStarterPlan) {
+      showNotification("webhooks");
+      return;
+    }
+
     setIsEnabled(newValue); // optimistic
     try {
       await api.patch(`/webhooks/${chatbotId}/toggle`, { isEnabled: newValue });
@@ -437,6 +455,11 @@ export default function WebhooksPage() {
   // ── Delete webhook ───────────────────────────────────────────────────────
 
   const handleDelete = async () => {
+    if (!webhookSupported || isStarterPlan) {
+      showNotification("webhooks");
+      return;
+    }
+
     setDeleting(true);
     try {
       await api.delete(`/webhooks/${chatbotId}`);
@@ -466,6 +489,11 @@ export default function WebhooksPage() {
   // ── Send test webhook ────────────────────────────────────────────────────
 
   const handleTest = async () => {
+    if (!webhookSupported || isStarterPlan) {
+      showNotification("webhooks");
+      return;
+    }
+
     if (!webhook) {
       toast.error("Save the webhook configuration first");
       return;
@@ -540,10 +568,50 @@ export default function WebhooksPage() {
         </CardHeader>
         <CardContent className="space-y-5">
           {configLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-20 w-full" />
+            <div className="space-y-5">
+              {/* URL field */}
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-9 w-full" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+
+              {/* Secret field */}
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-36" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-9 flex-1" />
+                </div>
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+
+              {/* Events checkboxes */}
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <Skeleton className="h-4 w-4 mt-0.5 rounded" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-3.5 w-28" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Enable toggle row */}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-52" />
+                </div>
+                <Skeleton className="h-5 w-9 rounded-full" />
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-2 pt-1">
+                <Skeleton className="h-9 w-36" />
+              </div>
             </div>
           ) : (
             <>
@@ -668,7 +736,13 @@ export default function WebhooksPage() {
                   {webhook && (
                     <Button
                       variant="destructive"
-                      onClick={() => setDeleteDialogOpen(true)}
+                      onClick={() => {
+                        if (!webhookSupported || isStarterPlan) {
+                          showNotification("webhooks");
+                        } else {
+                          setDeleteDialogOpen(true);
+                        }
+                      }}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete

@@ -20,6 +20,8 @@ export function CustomResponsesProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
+
   const getIds = () => {
     let accountId;
     try {
@@ -28,13 +30,12 @@ export function CustomResponsesProvider({ children }) {
     } catch (e) {
       console.error("Failed to parse account from localStorage", e);
     }
-    const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
     return { accountId, chatbotId };
   };
 
   const fetchPrompts = useCallback(async () => {
-    const { accountId, chatbotId } = getIds();
-    if (!accountId || !chatbotId) {
+    const { accountId, chatbotId: cId } = getIds();
+    if (!accountId || !cId) {
       setLoading(false);
       return;
     }
@@ -52,7 +53,7 @@ export function CustomResponsesProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   useEffect(() => {
     fetchPrompts();

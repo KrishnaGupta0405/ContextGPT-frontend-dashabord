@@ -170,7 +170,7 @@ export const faqCategories = [
       {
         question: 'What is considered as a "message"?',
         answer:
-          "Both user inputs and chatbot replies are counted separately. For example, one user message and one bot response count as two messages.",
+          "Both user inputs and chatbot replies (either sent by ai or human) are counted separately. For example, one user message and one chatbot response count as two messages.",
       },
       {
         question:

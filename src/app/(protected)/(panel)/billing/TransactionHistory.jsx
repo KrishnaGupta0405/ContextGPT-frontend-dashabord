@@ -15,22 +15,45 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Receipt, ExternalLink, FileText, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Receipt, FileText, ChevronLeft, ChevronRight, Download, ChevronDown, ChevronUp, Info } from "lucide-react";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [5, 10, 20];
 
 export function TransactionHistory() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(0); // 0-indexed
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
-  const fetchTransactions = async (pageNum = 0) => {
+  const toggleRow = (id) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const fetchTransactions = async (pageNum = 0, size = pageSize) => {
     try {
       setLoading(true);
       const txnResponse = await api.get(
-        `/billing/transactions?limit=${PAGE_SIZE}&offset=${pageNum * PAGE_SIZE}`
+        `/billing/transactions?limit=${size}&offset=${pageNum * size}`
       );
       console.log(txnResponse);
       if (txnResponse?.data?.success) {
@@ -46,8 +69,8 @@ export function TransactionHistory() {
   };
 
   useEffect(() => {
-    fetchTransactions(page);
-  }, [page]);
+    fetchTransactions(page, pageSize);
+  }, [page, pageSize]);
 
   const formatDate = (dateString, formatStr = "MMM dd, yyyy") => {
     if (!dateString) return "N/A";
@@ -141,7 +164,7 @@ export function TransactionHistory() {
     }
   };
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <Card className="border shadow-sm">
@@ -199,104 +222,189 @@ export function TransactionHistory() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((txn) => (
-                    <TableRow
-                      key={txn.id}
-                      className="group hover:bg-muted/30 transition-colors"
-                    >
-                      <TableCell className="pl-6 font-medium whitespace-nowrap">
-                        {formatDate(txn.createdAt)}
-                        <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs font-normal">
-                          <span>
-                            {formatDate(txn.billingPeriodStart, "MMM dd")} -{" "}
-                            {formatDate(txn.billingPeriodEnd, "MMM dd, yyyy")}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col items-start">
-                          <span className="flex items-center gap-2 text-sm font-medium capitalize">
-                            {getPlanName(txn.type)}
-                            {txn.subscription?.isTrial && (
-                              <Badge
-                                variant="outline"
-                                className="h-4 border-blue-200 bg-blue-50/50 px-1.5 py-0 text-[10px] text-blue-600 dark:border-blue-800 dark:text-blue-400"
-                              >
-                                Trial
-                              </Badge>
-                            )}
-                          </span>
-                          <span className="text-muted-foreground mt-0.5 text-xs capitalize">
-                            {txn.billingInterval ||
-                              txn.subscription?.billingInterval}{" "}
-                            billing
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-base font-semibold">
-                        {formatCurrency(txn.amount, txn.currency)}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(txn.status, txn.subscription?.isTrial)}
-                      </TableCell>
-                      <TableCell className="pr-6 text-right">
-                        <div className="text-muted-foreground flex justify-end gap-2">
-                          {/* {txn.receiptUrl && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                              className="hover:text-primary h-8 gap-1.5"
-                            >
-                              <a
-                                href={txn.receiptUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <FileText className="h-4 w-4" />
-                                <span className="hidden sm:inline">
-                                  Receipt
-                                </span>
-                              </a>
-                            </Button>
-                          )} */}
-                          {/* F5: Use backend proxy for invoice URL */}
-                          {txn.paddleTransactionId && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="hover:text-primary h-8 gap-1"
-                              onClick={() => handleInvoiceDownload(txn.id)}
-                            >
-                              <Download className="h-4 w-4" />
-                              <span className="hidden sm:inline">
-                                Invoice
+                  {transactions.map((txn) => {
+                    const isExpanded = expandedRows.has(txn.id);
+                    const sub = txn.subscription;
+                    const isCancelled =
+                      sub?.canceledAt || sub?.subscriptionStatus === "canceled" || sub?.subscriptionStatus === "cancelled";
+
+                    return (
+                      <React.Fragment key={txn.id}>
+                        <TableRow
+                          className="group hover:bg-muted/30 transition-colors cursor-pointer"
+                          onClick={() => sub && toggleRow(txn.id)}
+                        >
+                          <TableCell className="pl-6 font-medium whitespace-nowrap">
+                            {formatDate(txn.createdAt)}
+                            <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs font-normal">
+                              <span>
+                                {formatDate(txn.billingPeriodStart, "MMM dd")} -{" "}
+                                {formatDate(txn.billingPeriodEnd, "MMM dd, yyyy")}
                               </span>
-                            </Button>
-                          )}
-                          {!txn.receiptUrl &&
-                            !txn.paddleTransactionId && (
-                              <span className="px-2 py-1 text-xs italic">
-                                N/A
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col items-start">
+                              <span className="flex items-center gap-2 text-sm font-medium capitalize">
+                                {getPlanName(txn.type)}
+                                {sub?.isTrial && (
+                                  <Badge
+                                    variant="outline"
+                                    className="h-4 border-blue-200 bg-blue-50/50 px-1.5 py-0 text-[10px] text-blue-600 dark:border-blue-800 dark:text-blue-400"
+                                  >
+                                    Trial
+                                  </Badge>
+                                )}
                               </span>
-                            )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                              <span className="text-muted-foreground mt-0.5 text-xs capitalize">
+                                {txn.billingInterval || sub?.billingInterval}{" "}
+                                billing
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-base font-semibold">
+                            {formatCurrency(txn.amount, txn.currency)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground text-[10px]">Txn</span>
+                                {getStatusBadge(txn.status, sub?.isTrial)}
+                              </div>
+                              {sub?.subscriptionStatus && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-muted-foreground text-[10px]">Sub</span>
+                                  {getStatusBadge(sub.subscriptionStatus)}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="pr-6 text-right">
+                            <div className="text-muted-foreground flex justify-end items-center gap-2">
+                              {txn.paddleTransactionId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="hover:text-primary h-8 gap-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleInvoiceDownload(txn.id);
+                                  }}
+                                >
+                                  <Download className="h-4 w-4" />
+                                  <span className="hidden sm:inline">Invoice</span>
+                                </Button>
+                              )}
+                              {!txn.receiptUrl && !txn.paddleTransactionId && (
+                                <span className="px-2 py-1 text-xs italic">N/A</span>
+                              )}
+                              {sub && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleRow(txn.id);
+                                  }}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+
+                        {isExpanded && sub && (
+                          <TableRow className="hover:bg-transparent border-0">
+                            <TableCell colSpan={5} className="p-0">
+                              <div className="bg-muted/20 dark:bg-muted/10 border-y px-8 py-4 text-sm space-y-2 w-full">
+                                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide mb-3">
+                                  Subscription Details
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                                  <div className="flex justify-between sm:justify-start sm:gap-2">
+                                    <span className="text-muted-foreground">Subscription started from</span>
+                                    <span className="font-medium">{formatDate(sub.currentPeriodStart, "MMM dd, yyyy")}</span>
+                                  </div>
+                                  <div className="flex justify-between sm:justify-start sm:gap-2 items-center">
+                                    <span className="text-muted-foreground flex items-center gap-1">
+                                      Subscription ends at
+                                      {isCancelled && (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Info className="h-3.5 w-3.5 text-yellow-500 cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs text-xs">
+                                              Subscription has been cancelled — the end date no longer carries significance.
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )}
+                                    </span>
+                                    <span className="font-medium">{formatDate(sub.currentPeriodEnd, "MMM dd, yyyy")}</span>
+                                  </div>
+                                  {sub.canceledAt && (
+                                    <div className="flex justify-between sm:justify-start sm:gap-2">
+                                      <span className="text-muted-foreground">Subscription cancelled at</span>
+                                      <span className="font-medium text-red-500">{formatDate(sub.canceledAt, "MMM dd, yyyy")}</span>
+                                    </div>
+                                  )}
+                                  {!sub.canceledAt && sub.nextBilledAt && (
+                                    <div className="flex justify-between sm:justify-start sm:gap-2">
+                                      <span className="text-muted-foreground">Next billing at</span>
+                                      <span className="font-medium">{formatDate(sub.nextBilledAt, "MMM dd, yyyy")}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
 
-            {/* F7: Pagination controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between border-t px-6 py-3">
+            {/* Pagination controls */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t px-6 py-3">
+              <div className="flex items-center gap-4">
                 <span className="text-muted-foreground text-sm">
-                  Showing {page * PAGE_SIZE + 1}–
-                  {Math.min((page + 1) * PAGE_SIZE, totalCount)} of{" "}
-                  {totalCount}
+                  Showing {totalCount === 0 ? 0 : page * pageSize + 1}–
+                  {Math.min((page + 1) * pageSize, totalCount)} of {totalCount}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-xs">Rows</span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(val) => {
+                      setPageSize(Number(val));
+                      setPage(0);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-16 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map((s) => (
+                        <SelectItem key={s} value={String(s)} className="text-xs">
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5">
                   <Button
                     variant="outline"
                     size="sm"
@@ -305,6 +413,41 @@ export function TransactionHistory() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
+
+                  {(() => {
+                    const delta = 2;
+                    const start = Math.max(0, Math.min(page - delta, totalPages - 5));
+                    const end = Math.min(totalPages - 1, start + 4);
+                    const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+                    return (
+                      <>
+                        {start > 0 && (
+                          <>
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-xs" onClick={() => setPage(0)}>1</Button>
+                            {start > 1 && <span className="text-muted-foreground px-0.5 text-sm">…</span>}
+                          </>
+                        )}
+                        {pages.map((i) => (
+                          <Button
+                            key={i}
+                            variant={i === page ? "default" : "outline"}
+                            size="sm"
+                            className="h-8 w-8 p-0 text-xs"
+                            onClick={() => setPage(i)}
+                          >
+                            {i + 1}
+                          </Button>
+                        ))}
+                        {end < totalPages - 1 && (
+                          <>
+                            {end < totalPages - 2 && <span className="text-muted-foreground px-0.5 text-sm">…</span>}
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 text-xs" onClick={() => setPage(totalPages - 1)}>{totalPages}</Button>
+                          </>
+                        )}
+                      </>
+                    );
+                  })()}
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -314,8 +457,8 @@ export function TransactionHistory() {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </>
         )}
       </CardContent>

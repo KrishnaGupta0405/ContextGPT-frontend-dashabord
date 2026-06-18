@@ -1,18 +1,39 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getOtherTools } from "../_config/tools.config";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function OtherTools({ currentSlug }) {
   const scrollRef = useRef(null);
   const tools = getOtherTools(currentSlug, 12);
 
+  const getViewport = () =>
+    scrollRef.current?.querySelector("[data-slot='scroll-area-viewport']");
+
   const scroll = (dir) => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollBy({ left: dir * 300, behavior: "smooth" });
+    const viewport = getViewport();
+    if (!viewport) return;
+    viewport.scrollBy({ left: dir * 200, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const viewport = getViewport();
+      if (!viewport) return;
+      const atEnd =
+        viewport.scrollLeft + viewport.clientWidth >=
+        viewport.scrollWidth - 1;
+      if (atEnd) {
+        viewport.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        viewport.scrollBy({ left: 200, behavior: "smooth" });
+      }
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="bg-[#f0f4ff] pb-20 pt-4">
@@ -35,30 +56,28 @@ export default function OtherTools({ currentSlug }) {
             <ChevronLeft className="h-4 w-4 text-gray-600" />
           </button>
 
-          <div
+          <ScrollArea
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            orientation="horizontal"
+            type="always"
+            className="pb-2"
           >
+          <div className="flex gap-4">
             {tools.map((tool) => (
               <div
                 key={tool.slug}
-                className="flex w-60 flex-none flex-col rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
+                className="flex w-56 flex-none flex-col overflow-hidden rounded-xl border border-gray-200 bg-linear-to-b from-blue-100 to-white py-5 shadow-sm transition-shadow hover:shadow-md"
               >
-                {/* Icon */}
-                <div
-                  className={`mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-2xl ${tool.iconBg}`}
-                >
-                  {typeof tool.icon === "string" && tool.icon.length <= 2 ? (
-                    <span>{tool.icon}</span>
-                  ) : (
-                    <span className="text-sm font-bold text-gray-600">
-                      {tool.icon}
-                    </span>
-                  )}
+                <div className="relative mx-4 mb-4 flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-blue-400 bg-white p-1.5">
+                  <img
+                    src={tool.image}
+                    alt={tool.title}
+                    className="h-full w-full rounded-lg object-contain"
+                  />
                 </div>
 
                 {/* Title */}
+                <div className="flex flex-1 flex-col rounded-b-xl bg-white p-4">
                 <h3 className="mb-1 text-sm font-semibold leading-snug text-gray-900">
                   {tool.title}
                 </h3>
@@ -70,13 +89,15 @@ export default function OtherTools({ currentSlug }) {
 
                 <Link
                   href={`/tools/${tool.slug}`}
-                  className="mt-auto inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  className="inline-flex w-fit items-center rounded-md border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50"
                 >
                   Try tool
                 </Link>
+                </div>
               </div>
             ))}
           </div>
+          </ScrollArea>
 
           <button
             onClick={() => scroll(1)}
@@ -85,13 +106,6 @@ export default function OtherTools({ currentSlug }) {
           >
             <ChevronRight className="h-4 w-4 text-gray-600" />
           </button>
-        </div>
-
-        {/* Nav dots (decorative) */}
-        <div className="mt-6 flex justify-center gap-1">
-          <button className="h-2 w-6 rounded-full bg-gray-400" />
-          <button className="h-2 w-2 rounded-full bg-gray-200" />
-          <button className="h-2 w-2 rounded-full bg-gray-200" />
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 import { useChatbot } from "@/context/ChatbotContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
@@ -13,11 +14,13 @@ const ChatModesTab = () => {
   const [loading, setLoading] = useState(false);
   const [chatStart, setChatStart] = useState("ai");
 
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
+
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchSettings();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   useEffect(() => {
     return () => markClean();
@@ -76,14 +79,6 @@ const ChatModesTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-5xl space-y-8 pb-24">
       <div className="grid grid-cols-1 gap-8 border-b border-gray-100 py-6 md:grid-cols-[1fr_2fr]">
@@ -96,60 +91,74 @@ const ChatModesTab = () => {
           </p>
         </div>
 
-        <div className="flex flex-col space-y-5">
-          {/* Always Starts New Conversation with Human */}
-          <label
-            className="flex cursor-pointer items-start gap-3"
-            onClick={() => { setChatStart("agent"); markDirty(); }}
-          >
-            <div className="mt-0.5 flex items-center justify-center">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                  chatStart === "agent" ? "border-blue-600" : "border-gray-300"
-                }`}
-              >
-                {chatStart === "agent" && (
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                )}
+        {initialLoading ? (
+          <div className="flex flex-col space-y-5">
+            {[1, 2].map((i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="mt-0.5 h-4 w-4 shrink-0 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[14px] font-semibold text-gray-900">
-                Always Starts New Conversation with Human
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-5">
+            {/* Always Starts New Conversation with Human */}
+            <label
+              className="flex cursor-pointer items-start gap-3"
+              onClick={() => { setChatStart("agent"); markDirty(); }}
+            >
+              <div className="mt-0.5 flex items-center justify-center">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    chatStart === "agent" ? "border-blue-600" : "border-gray-300"
+                  }`}
+                >
+                  {chatStart === "agent" && (
+                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  )}
+                </div>
               </div>
-              <div className="text-[13px] text-gray-500">
-                Every new conversation starts in Human mode. AI won't reply to
-                it.
+              <div>
+                <div className="text-[14px] font-semibold text-gray-900">
+                  Always Starts New Conversation with Human
+                </div>
+                <div className="text-[13px] text-gray-500">
+                  Every new conversation starts in Human mode. AI won't reply to
+                  it.
+                </div>
               </div>
-            </div>
-          </label>
+            </label>
 
-          {/* Always Starts New Conversation with AI */}
-          <label
-            className="flex cursor-pointer items-start gap-3"
-            onClick={() => { setChatStart("ai"); markDirty(); }}
-          >
-            <div className="mt-0.5 flex items-center justify-center">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                  chatStart === "ai" ? "border-blue-600" : "border-gray-300"
-                }`}
-              >
-                {chatStart === "ai" && (
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                )}
+            {/* Always Starts New Conversation with AI */}
+            <label
+              className="flex cursor-pointer items-start gap-3"
+              onClick={() => { setChatStart("ai"); markDirty(); }}
+            >
+              <div className="mt-0.5 flex items-center justify-center">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    chatStart === "ai" ? "border-blue-600" : "border-gray-300"
+                  }`}
+                >
+                  {chatStart === "ai" && (
+                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  )}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[14px] font-semibold text-gray-900">
-                Always Starts New Conversation with AI
+              <div>
+                <div className="text-[14px] font-semibold text-gray-900">
+                  Always Starts New Conversation with AI
+                </div>
+                <div className="text-[13px] text-gray-500">
+                  Every new conversation starts in AI mode.
+                </div>
               </div>
-              <div className="text-[13px] text-gray-500">
-                Every new conversation starts in AI mode.
-              </div>
-            </div>
-          </label>
-        </div>
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="fixed right-0 bottom-0 z-10 w-[calc(100%-256px)] border-t bg-white p-4">

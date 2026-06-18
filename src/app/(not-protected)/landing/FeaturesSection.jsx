@@ -3,7 +3,7 @@
 import React from 'react'
 import { Check } from 'lucide-react'
 
-const FeaturesSection = () => {
+const FeaturesSectionHero = () => {
   const problems = [
     'Basic AI tools don’t actually know your business facts',
     'Building your own bot is a total pain and always breaks',
@@ -89,4 +89,85 @@ const benefits = [
   )
 }
 
-export default FeaturesSection
+const FeaturesSectionLead = () => {
+  const problems = [
+    { bold: "Potential customers hate waiting,", rest: " and most won't stick around for a callback" },
+    { bold: "Your competitors are faster,", rest: " which means they're capturing leads you paid to attract" },
+    { bold: "First response wins more business,", rest: " especially when prospects are comparing options" },
+    { bold: "Miss an inquiry today,", rest: " and someone else could close the deal tomorrow" },
+  ]
+
+  const benefits = [
+    { bold: "Get started in 5 minutes:", rest: " train your AI directly from your website content" },
+    { bold: "Never leave a question unanswered:", rest: " provide immediate help to every visitor" },
+    { bold: "Capture leads around the clock:", rest: " even when you're busy, offline, or asleep" },
+    { bold: "Simple setup:", rest: " no coding, developers, or complex integrations needed" },
+  ]
+
+  return (
+    <section className="w-full py-16 md:py-24 lg:py-32 px-4 md:px-6 bg-linear-to-b from-[#eef2ff] to-white">
+      <div className="max-w-7xl mx-auto">
+        {/* Heading */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
+            Why you&apos;re losing leads right now
+          </h2>
+          <p className="text-base md:text-lg text-neutral-600 max-w-2xl mx-auto">
+            You&apos;re <strong>100x more likely to convert a lead</strong> if you respond within 5 minutes — but most service businesses take hours.
+          </p>
+        </div>
+
+        {/* Before/After Grid */}
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Problem Card */}
+          <div className="rounded-2xl bg-white border border-neutral-200 p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <svg aria-hidden="true" className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M232,184a8,8,0,0,1-16,0A88,88,0,0,0,67.47,120.16l26.19,26.18A8,8,0,0,1,88,160H24a8,8,0,0,1-8-8V88a8,8,0,0,1,13.66-5.66l26.48,26.48A104,104,0,0,1,232,184Z"></path></svg>
+              <span className="text-sm font-semibold text-neutral-600">The Problem</span>
+            </div>
+
+            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-black">
+              The problem: slow response = lost deals
+            </h3>
+
+            <ul className="space-y-4">
+              {problems.map((problem, idx) => (
+                <li key={idx} className="flex gap-3 items-start">
+                  <span className="w-2 h-2 rounded-full bg-red-400 mt-2.5 flex-shrink-0" />
+                  <p className="text-base text-neutral-700 leading-relaxed underline underline-offset-4 decoration-neutral-400 decoration-dotted">
+                    <strong>{problem.bold}</strong>{problem.rest}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Solution Card */}
+          <div className="rounded-2xl bg-blue-600 p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-sm font-semibold text-white">The Solution</span>
+              <svg aria-hidden="true" className="h-5 w-5 text-blue-200" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,109.66l-48,48a8,8,0,0,1-11.32-11.32L212.69,104,170.34,61.66a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,109.66Zm-48-11.32-48-48A8,8,0,0,0,120,56V96.3A104.15,104.15,0,0,0,24,200a8,8,0,0,0,16,0,88.11,88.11,0,0,1,80-87.63V152a8,8,0,0,0,13.66,5.66l48-48A8,8,0,0,0,181.66,98.34Z"></path></svg>
+            </div>
+
+            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">
+              SiteGPT gives you an unfair advantage
+            </h3>
+
+            <ul className="space-y-4">
+              {benefits.map((benefit, idx) => (
+                <li key={idx} className="flex gap-3 items-start">
+                  <Check className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
+                  <p className="text-base text-blue-50 leading-relaxed underline underline-offset-4 decoration-blue-300 decoration-dotted">
+                    <strong>{benefit.bold}</strong>{benefit.rest}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export {FeaturesSectionHero, FeaturesSectionLead}

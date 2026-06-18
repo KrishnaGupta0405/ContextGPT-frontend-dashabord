@@ -44,6 +44,8 @@ import {
 import { format } from "date-fns";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { usePlanUpgradeNotification } from "@/components/PlanUpgradeNotification";
 
 function KeyRow({ apiKey, onRevoke }) {
   const [copied, setCopied] = useState(false);
@@ -299,7 +301,7 @@ function statusColor(code) {
   return "text-green-600 dark:text-green-400";
 }
 
-function ApiLogsSection({ apiKeys }) {
+function ApiLogsSection({ apiKeys, apiAccessSupported, isStarterPlanUser }) {
   const [logs, setLogs] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, limit: 50, offset: 0, hasMore: false });
   const [loading, setLoading] = useState(true);
@@ -308,6 +310,10 @@ function ApiLogsSection({ apiKeys }) {
   const keyMap = Object.fromEntries(apiKeys.map((k) => [k.id, k.keyName]));
 
   const fetchLogs = async (offset = 0) => {
+    if (isStarterPlanUser || !apiAccessSupported) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -328,6 +334,7 @@ function ApiLogsSection({ apiKeys }) {
 
   useEffect(() => {
     fetchLogs(0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const page = Math.floor(pagination.offset / pagination.limit) + 1;
@@ -510,12 +517,21 @@ function ApiLogsSection({ apiKeys }) {
 }
 
 export default function ApiKeysPage() {
+  const { subscription } = useAuth();
+  const { showNotification } = usePlanUpgradeNotification();
   const [apiKeys, setApiKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
 
+  const apiAccessSupported = subscription?.apiAccess ?? false;
+  const isStarterPlanUser = /^pri_starter_/i.test(subscription?.planType ?? "");
+
   const fetchKeys = async () => {
+    if (isStarterPlanUser || !apiAccessSupported) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -533,6 +549,7 @@ export default function ApiKeysPage() {
 
   useEffect(() => {
     fetchKeys();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRevoke = (id) => {
@@ -572,7 +589,10 @@ export default function ApiKeysPage() {
           </p>
         </div>
         <Button
-          onClick={() => setShowDialog(true)}
+          onClick={() => {
+            if (isStarterPlanUser || !apiAccessSupported) { showNotification("apiAccess"); return; }
+            setShowDialog(true);
+          }}
           className="flex shrink-0 items-center gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -626,7 +646,10 @@ export default function ApiKeysPage() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setShowDialog(true)}
+                onClick={() => {
+                  if (isStarterPlanUser || !apiAccessSupported) { showNotification("apiAccess"); return; }
+                  setShowDialog(true);
+                }}
               >
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Generate Key
@@ -649,7 +672,7 @@ export default function ApiKeysPage() {
       />
 
       {/* API Logs */}
-      <ApiLogsSection apiKeys={apiKeys} />
+      <ApiLogsSection apiKeys={apiKeys} apiAccessSupported={apiAccessSupported} isStarterPlanUser={isStarterPlanUser} />
     </div>
   );
 }

@@ -1,0 +1,365 @@
+# SDK Methods ($sitegpt)
+
+Advanced programmatic control of the chatbot widget
+
+> **⚠️ For Advanced Users Only**
+>
+> These methods require JavaScript knowledge and are intended for developers who need programmatic control over the chatbot. Most users should stick to the standard [Installation Guide](#link-> /inteagtion/websiteInegration/).
+
+### What are $sitegpt Methods?
+
+The `$sitegpt` object allows you to interact with and control the SiteGPT chatbot widget embedded on your website. You can use it to customize appearance, provide context, manage user sessions, and control the widget's visibility programmatically.
+
+Commands are sent using the `push` method: `window.$sitegpt.push([command, ...args]);`
+
+---
+
+## Container Mode (Embedded Widgets)
+
+By default, the widget appears as a floating chat bubble. You can embed the widget inside specific container elements on your page using class and data attributes.
+
+### Single Embedded Widget (Recommended)
+
+```html
+<!-- Create a container with class and data attribute -->
+<div class="sitegpt-chat-widget" data-sitegpt-id="93ab558e-8c8d-415e-8255-0fe0c1df4bb2" style="width: 100%; height: 500px;"></div>
+
+<!-- Load the widget script -->
+<script src="https://sitegpt.ai/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js"></script>
+```
+
+### Multiple Instances of the Same Chatbot
+
+```html
+<!-- Create multiple containers for the same chatbot -->
+<div class="sitegpt-chat-widget" data-sitegpt-id="93ab558e-8c8d-415e-8255-0fe0c1df4bb2" style="width: 100%; height: 400px;"></div>
+<div class="sitegpt-chat-widget" data-sitegpt-id="93ab558e-8c8d-415e-8255-0fe0c1df4bb2" style="width: 100%; height: 400px;"></div>
+<div class="sitegpt-chat-widget" data-sitegpt-id="93ab558e-8c8d-415e-8255-0fe0c1df4bb2" style="width: 100%; height: 400px;"></div>
+
+<!-- Load the widget script once -->
+<script src="https://sitegpt.ai/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js"></script>
+```
+
+> **ℹ️ How Container Mode Works**
+>
+> Use `class="sitegpt-chat-widget"` with `data-sitegpt-id="{CHATBOT_ID}"` to embed widgets. You can create multiple containers with the same chatbot ID - each will get its own embedded widget. The floating bubble appears once unless you use `hideButton=true`. When you send commands, the floating widget is prioritized over embedded widgets, and commands are processed only once per chatbot (no duplicates even with multiple instances).
+
+---
+
+## Programmatic-Only Floating Widget
+
+If you want the floating widget to exist but only be openable via programmatic commands (no visible button), use the `hideButton` parameter.
+
+This is useful when you want to control when the chat appears using custom trigger elements on your page, while still benefiting from the floating widget interface.
+
+### Example: Custom Trigger Button
+
+```html
+<!-- Your custom trigger button -->
+<button id="my-chat-button" onclick="window.$sitegpt.push(['open'])">
+Chat with us
+</button>
+
+<!-- Load widget with hideButton parameter -->
+<script src="https://sitegpt.ai/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js?hideButton=true"></script>
+```
+
+> **ℹ️ How It Works**
+>
+> The floating widget is created and ready to receive commands, but the bubble button and tooltip are hidden. You can open it using `window.$sitegpt.push(['open'])` or by sending messages with `['do', 'message:send', 'text']`. Users can still close the widget using the close button inside it.
+
+### Comparison of Parameters
+
+| Parameter | Floating Widget | Bubble Button | Use Case |
+| :--- | :--- | :--- | :--- |
+| (none) | ✅ Created | ✅ Visible | Default behavior |
+| `?hideButton=true` | ✅ Created | ❌ Hidden | Programmatic control only |
+| `?hideWidget=true` | ❌ Not created | ❌ Not created | Embedded containers only |
+
+---
+
+## Multiple Widgets & Widget-Specific Commands
+
+If you have multiple chatbot widgets on the same page, you can use `$sitegpt_widget` to send commands to a specific widget by chatbot ID.
+
+The `$sitegpt_widget` object is a Record where keys are chatbot IDs and values are command queues. Widget-specific commands are processed before global `$sitegpt` commands.
+
+### Syntax
+
+```javascript
+// Send command to a specific chatbot
+window.$sitegpt_widget['93ab558e-8c8d-415e-8255-0fe0c1df4bb2'].push([command, ...args])
+
+// Global command (affects all widgets)
+window.$sitegpt.push([command, ...args])
+```
+
+### Example with Multiple Widgets
+
+```javascript
+// Configure sales chatbot
+window.$sitegpt_widget['sales-bot-id'].push([
+  'set',
+  'context',
+  ['You are a sales assistant.', 'Current page: Pricing']
+])
+
+// Configure support chatbot
+window.$sitegpt_widget['support-bot-id'].push([
+  'set',
+  'context',
+  ['You are a support assistant.', 'Current page: Help Center']
+])
+
+// Open specific chatbot
+window.$sitegpt_widget['sales-bot-id'].push(['open'])
+```
+
+---
+
+## Quick Navigation
+
+- [Send Messages Programmatically](#send-messages-programmatically)
+- [Reset Conversation](#reset-conversation)
+- [Reload Widget](#reload-widget)
+- [Manage User Sessions](#manage-user-sessions)
+- [Control Widget Visibility](#control-widget-visibility)
+- [Enhance Chatbot Context](#enhance-chatbot-context)
+- [Customize Widget Appearance](#customize-widget-appearance)
+
+---
+
+## Send Messages Programmatically
+
+### Send a message immediately
+Sends a message to the chatbot immediately. The chat widget will open automatically if it's closed.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["do", "message:send", "message_text"])
+```
+
+#### Example
+
+```javascript
+// Send message when pricing button is clicked
+document.getElementById('pricing-button').addEventListener('click', function() {
+  window.$sitegpt.push(['do', 'message:send', 'What are your pricing plans?'])
+})
+```
+
+### Prefill the message input
+Prefills the message input field with text. Users can edit the message before sending.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["set", "message:text", "text_string"])
+```
+
+#### Example
+
+```javascript
+window.$sitegpt.push(['set', 'message:text', "Hi! I'd like to get help with..."])
+```
+
+---
+
+## Reset Conversation
+
+### Start a fresh conversation
+Resets the current conversation thread and returns to the widget home page. This clears the conversation history and allows the user to start over. Useful for "Start New Conversation" or "Reset Chat" buttons. The chat widget will open automatically if it's closed. If you want to reset and open in a single flicker-free step, use `window.$sitegpt.push(['open', { reset: true }])` instead.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["do", "conversation:reset"])
+```
+
+#### Example
+
+```javascript
+// Add a "Start New Conversation" button
+document.getElementById('reset-button').addEventListener('click', function() {
+  window.$sitegpt.push(['do', 'conversation:reset'])
+})
+```
+
+---
+
+## Reload Widget
+
+### Reinitialize the widget
+Completely reinitializes the widget by removing all existing widget elements and recreating them from scratch. This is useful when you need to refresh the widget state after page navigation or dynamic content changes.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["do", "widget:reload"])
+```
+
+#### Example: Single-Page Application
+
+```javascript
+// Reload widget when route changes in your SPA
+router.on('routeChange', function(newRoute) {
+  // Wait for new content to render
+  setTimeout(function() {
+    window.$sitegpt.push(['do', 'widget:reload'])
+  }, 100)
+})
+```
+
+#### Example: Target Specific Widget
+
+```javascript
+// Reload a specific widget by ID
+window.$sitegpt_widget['93ab558e-8c8d-415e-8255-0fe0c1df4bb2'].push(['do', 'widget:reload'])
+```
+
+> **ℹ️ When to Use widget:reload**
+>
+> - After client-side navigation in SPAs (React, Vue, etc.)
+> - When inline embed containers appear/disappear dynamically
+> - To ensure widgets detect new containers after DOM changes
+>
+> **Note:** This preserves user containers (`.sitegpt-chat-widget`) while removing and recreating iframes and buttons.
+
+---
+
+## Manage User Sessions
+
+### Automatically log the user in
+Automatically log the user into the chatbot widget using their verified email address. This requires generating a secure signature on your backend.
+
+> **⚠️ Security Warning**
+>
+> Never generate signatures in front-end code. Doing so would expose your API key and allow anyone to impersonate users. Always generate signatures on your backend server.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["set", "user:email", ["email", "signature"]])
+```
+
+#### Frontend Example
+
+```javascript
+window.$sitegpt.push([
+  'set',
+  'user:email',
+  [
+    'user@company.com',
+    'cd7cc422ca57c82d844b2373fdcd6259c5ee6e135ef65ab6fdca85e3f87abb1' // Generated on backend
+  ]
+])
+```
+
+#### Backend Signature Generation (Node.js)
+
+```javascript
+const crypto = require("crypto")
+
+// Your API key (keep it private!)
+// Find yours at https://sitegpt.ai/billing
+const apiKey = 'your-api-key-here'
+
+// Sign an email using HMAC-SHA256
+function signEmail(email) {
+  return crypto.createHmac('sha256', apiKey).update(email).digest('hex')
+}
+
+// Get user email from your authenticated session
+const userEmail = getEmailFromSession() // Your logic
+const signature = signEmail(userEmail)
+
+// Send signature to frontend securely
+```
+
+---
+
+## Control Widget Visibility
+
+### Open, Close, or Toggle the chat widget
+Programmatically control the chat widget's visibility, especially useful when you've hidden the default bubble (`hideButton=true`).
+
+#### Open the chat
+
+```javascript
+window.$sitegpt.push(['open'])
+```
+
+#### Open with fresh conversation
+Opens the chat and resets the conversation in a single flicker-free step.
+
+```javascript
+window.$sitegpt.push(['open', { reset: true }])
+```
+
+#### Close the chat
+
+```javascript
+window.$sitegpt.push(['close'])
+```
+
+#### Toggle the chat
+
+```javascript
+window.$sitegpt.push(['toggle'])
+```
+
+---
+
+## Enhance Chatbot Context
+
+### Give extra context
+Provide additional information to your chatbot for more relevant and contextual conversations, such as the current page the user is on.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["set", "context", ["prefix", "suffix"]])
+```
+
+#### Example
+
+```javascript
+window.$sitegpt.push([
+  'set',
+  'context',
+  [
+    "You are a sales executive. Guide users to book a demo call.", // Prefix
+    "Current Page: Pricing Page \n URL: https://example.com/pricing" // Suffix
+  ]
+])
+```
+
+---
+
+## Customize Widget Appearance
+
+### Add custom CSS
+Apply your own CSS to the chatbot widget and style it according to your branding.
+
+#### Syntax
+
+```javascript
+window.$sitegpt.push(["set", "css", "css_string"])
+```
+
+#### Example
+
+```javascript
+// Set the primary color to green
+window.$sitegpt.push(['set', 'css', ':root { --chat-color: green; }'])
+
+// Change the font family
+window.$sitegpt.push(['set', 'css', 'body { font-family: "lato", sans-serif; }'])
+```
+
+---
+
+> **ℹ️ Need Help?**
+>
+> For complete documentation on all available $sitegpt methods, visit our [SDK Documentation](#). For general installation help, return to the [Installation Guide](#).

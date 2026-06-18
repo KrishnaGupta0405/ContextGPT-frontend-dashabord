@@ -2,209 +2,44 @@
 
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import DemoPage from "@/app/(not-protected)/demo/page";
+import DemoClient from "@/app/(not-protected)/demo/DemoClient";
 import FAQSection from "@/app/(not-protected)/landing/FAQSection";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
-// ─── Feature Data ───────────────────────────────────────────────────────────
-
-const FEATURE_CATEGORIES = [
-  {
-    id: "training",
-    label: "Training & Customization",
-    description:
-      "Train your AI chatbot on your specific content and fine-tune its behavior, tone, and response style to match your brand.",
-    icon: "🧠",
-    features: [
-      {
-        icon: "📄",
-        title: "Import Training Content",
-        description:
-          "Upload PDFs, Word docs, CSVs, or paste raw text. ContextGPT ingests and indexes your data instantly.",
-      },
-      {
-        icon: "🌐",
-        title: "Globe Scraping",
-        description:
-          "Automatically crawl and sync your website or documentation URLs so your bot always has the latest content.",
-      },
-      {
-        icon: "🔗",
-        title: "CRM Integrations (API)",
-        description:
-          "Connect your CRM, helpdesk, or internal wiki via API to pull in structured knowledge automatically.",
-      },
-      {
-        icon: "📊",
-        title: "Salesforce Data",
-        description:
-          "Sync contacts, cases, and knowledge articles directly from Salesforce into your AI training set.",
-      },
-      {
-        icon: "🎨",
-        title: "Customize Appearance",
-        description:
-          "Match your brand with custom colors, logos, fonts, and chat widget styles without writing a single line of CSS.",
-      },
-      {
-        icon: "⚙️",
-        title: "Persona & Instructions",
-        description:
-          "Define the bot's name, personality, tone, and hard rules so every response stays on-brand and on-policy.",
-      },
-    ],
-  },
-  {
-    id: "chat",
-    label: "Chat Interactions",
-    description:
-      "Deliver seamless, intelligent conversations across every channel your customers already use.",
-    icon: "💬",
-    features: [
-      {
-        icon: "🤖",
-        title: "Collect Feedback",
-        description:
-          "Let users rate and flag answers in real time so you can continuously improve accuracy.",
-      },
-      {
-        icon: "🔍",
-        title: "Cited Sources",
-        description:
-          "Every answer links back to the source document or URL, building trust and enabling quick verification.",
-      },
-      {
-        icon: "🔀",
-        title: "Escalation to WhatsApp",
-        description:
-          "Seamlessly hand off complex queries to a live agent directly within WhatsApp without losing context.",
-      },
-      {
-        icon: "🌍",
-        title: "Language Support",
-        description:
-          "Automatically detect and respond in 100+ global languages so no customer is left behind.",
-      },
-      {
-        icon: "📬",
-        title: "Lead Collection",
-        description:
-          "Capture names, emails, and custom fields mid-conversation and push them straight to your CRM.",
-      },
-    ],
-  },
-  {
-    id: "extensions",
-    label: "Extensions",
-    description:
-      "Extend ContextGPT's reach with powerful add-ons that go beyond basic Q&A.",
-    icon: "🧩",
-    features: [
-      {
-        icon: "📡",
-        title: "API",
-        description:
-          "Programmatically query your bot, manage training data, and retrieve analytics via our REST API.",
-      },
-      {
-        icon: "🔌",
-        title: "The AI Connector",
-        description:
-          "Bridge ContextGPT with any third-party service — CRMs, ticketing systems, e-commerce platforms, and more.",
-      },
-      {
-        icon: "⚡",
-        title: "Automation",
-        description:
-          "Trigger workflows, send notifications, or update records automatically based on conversation events.",
-      },
-      {
-        icon: "🔗",
-        title: "Integrations",
-        description:
-          "Native plug-ins for Slack, Intercom, HubSpot, Zendesk, and dozens of other platforms — no code required.",
-      },
-    ],
-  },
-  {
-    id: "security",
-    label: "Security & Compliance",
-    description:
-      "Enterprise-grade security and compliance so your data stays protected and your team stays audit-ready.",
-    icon: "🔒",
-    features: [
-      {
-        icon: "🛡️",
-        title: "SOC 2 Report",
-        description:
-          "Independent SOC 2 Type II certification confirms our security controls meet the highest industry standards.",
-      },
-      {
-        icon: "🇪🇺",
-        title: "GDPR Compliance",
-        description:
-          "Full data residency controls, consent management, and DPA agreements to keep you compliant in Europe.",
-      },
-      {
-        icon: "🔒",
-        title: "Fine-grained Access",
-        description:
-          "Role-based permissions, SSO, and audit logs give you granular control over who sees what.",
-      },
-      {
-        icon: "📋",
-        title: "Data Subprocessors",
-        description:
-          "Full transparency on every third-party vendor we use to process your data, updated in real time.",
-      },
-      {
-        icon: "🔄",
-        title: "Subprocess Process",
-        description:
-          "Documented data flows and retention policies so your security team always knows where data lives.",
-      },
-      {
-        icon: "📜",
-        title: "Data Processing Agreement",
-        description:
-          "Sign a legally binding DPA directly within the platform in minutes, no legal back-and-forth required.",
-      },
-    ],
-  },
-];
+import { FEATURE_CATEGORIES } from "./features.config.jsx";
+import FromTheAuthor from "../landing/FromTheAuthor.jsx";
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function FeatureCard({ icon, title, description }) {
   return (
-    <div className="group rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-xl">
-        {icon}
-      </div>
-      <h4 className="mb-1 text-sm font-semibold text-slate-900">{title}</h4>
-      <p className="text-sm leading-relaxed text-slate-500">{description}</p>
+    <div className="rounded-2xl  p-6">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center border border-blue-500 shadow-md bg-blue-50 rounded-xl">{icon}</div>
+      <h4 className="mb-2 text-3xl font-semibold text-slate-900">{title}</h4>
+      <p className="text-lg leading-relaxed tracking-tight text-slate-500">{description}</p>
     </div>
   );
 }
 
 function CategorySection({ category }) {
   return (
-    <section className="border-t border-slate-100 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[280px_1fr]">
+    <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[300px_1fr]">
           {/* Left label */}
-          <div>
-            <div className="mb-3 text-3xl">{category.icon}</div>
-            <h3 className="text-2xl font-bold text-slate-900">
-              {category.label}
-            </h3>
-            <p className="mt-3 text-sm leading-relaxed text-slate-500">
-              {category.description}
-            </p>
+          <div className="flex flex-col justify-start pt-1">
+            <div className="sticky top-24">
+              <p className="text-5xl font-bold leading-tight tracking-tight text-slate-900">
+                {category.label}
+              </p>
+              <p className="mt-4 text-xl leading-relaxed text-slate-600">
+                {category.description}
+              </p>
+            </div>
           </div>
 
           {/* Right cards grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {category.features.map((f) => (
               <FeatureCard key={f.title} {...f} />
             ))}
@@ -221,7 +56,7 @@ export default function Features() {
   return (
     <div className="bg-white text-slate-900">
       {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden px-4 pt-24 pb-20 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden px-4 pb-20 sm:px-6 lg:px-8">
         <AnimatedGridPattern
           numSquares={30}
           maxOpacity={0.2}
@@ -290,6 +125,33 @@ export default function Features() {
         </div>
       </section>
 
+      {/* ─── All Features Pill Grid ─── */}
+      <section className="py-20 my-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-blue-50">
+        <div className="mx-auto max-w-6xl text-center ">
+          <p className="text-4xl font-semibold mx-auto tracking-tight text-slate-900 mb-4 max-w-2xl">
+            Everything you need to roll out your own AI chatbot
+          </p>
+          <p className="text-sm text-slate-500 mb-12 max-w-2xl mx-auto">
+            ContextGPT is a production-ready support solution that does the work
+            of a full support staff but at a fraction of the cost.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {FEATURE_CATEGORIES.flatMap((cat) =>
+              cat.features.map((f) => (
+                <div
+                  key={f.title}
+                  style={{ backgroundColor: "white" }}
+                  className="flex items-center gap-2 rounded-xl border border-transparent shadow-lg px-4 py-4 text-lg font-semibold text-slate-800 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-blue-500 cursor-default"
+                >
+                  <span className="shrink-0 [&_svg]:h-4 [&_svg]:w-4">{f.icon}</span>
+                  {f.title}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ─── Feature Categories ─── */}
       <div className="mt-40">
         {FEATURE_CATEGORIES.map((cat) => (
@@ -298,12 +160,12 @@ export default function Features() {
       </div>
 
       {/* ─── Demo Section ─── */}
-      <section className="border-t border-slate-100">
-        <DemoPage />
+      <section className="border-slate-100">
+        <DemoClient />
       </section>
-
+      <FromTheAuthor />
       {/* ─── FAQ Section ─── */}
-      <section className="border-t border-slate-100 px-4 sm:px-6 lg:px-8 pb-20">
+      <section className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="mx-auto max-w-6xl">
           <FAQSection />
         </div>

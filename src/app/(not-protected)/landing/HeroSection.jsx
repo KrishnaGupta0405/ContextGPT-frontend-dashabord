@@ -1,3 +1,5 @@
+"use client";
+import { useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
@@ -9,9 +11,49 @@ const features = [
   "100+ global languages",
 ];
 export default function HeroSection() {
+  useEffect(() => {
+    console.log("[HeroSection] useEffect mounting");
+
+    // Embedded hero widget
+    const embedded = document.createElement("script");
+    embedded.type = "module";
+    embedded.src = "https://contextgpt-widget-testing.vercel.app/loader.js?instance=embedded-hero&chatbotId=27df3d37-8395-4d1f-a084-5609237ae367&server=http%3A%2F%2Flocalhost%3A9000&mode=embedded&container=%23contextgpt-hero-container";
+    embedded.setAttribute("data-chatbot-id", "27df3d37-8395-4d1f-a084-5609237ae367");
+    embedded.setAttribute("data-server", "http://localhost:9000");
+    embedded.setAttribute("data-mode", "embedded");
+    embedded.setAttribute("data-container", "#contextgpt-hero-container");
+    embedded.setAttribute("data-instance", "embedded-hero");
+    document.body.appendChild(embedded);
+    // console.log("[HeroSection] embedded script injected");
+
+    // Floating widget — only inject if layout.js hasn't already mounted one
+    // (layout.js is deduplicated by Next.js on the landing page, so we load it here)
+    let floating = null;
+    const floatingAlreadyExists = !!document.getElementById("contextgpt-widget");
+    // console.log("[HeroSection] #contextgpt-widget already in DOM?", floatingAlreadyExists);
+    if (!floatingAlreadyExists) {
+      floating = document.createElement("script");
+      floating.type = "module";
+      floating.src = "https://contextgpt-widget-testing.vercel.app/loader.js?instance=floating&chatbotId=27df3d37-8395-4d1f-a084-5609237ae367&server=http%3A%2F%2Flocalhost%3A9000";
+      floating.setAttribute("data-chatbot-id", "27df3d37-8395-4d1f-a084-5609237ae367");
+      floating.setAttribute("data-server", "http://localhost:9000");
+      floating.setAttribute("data-instance", "floating");
+      document.body.appendChild(floating);
+      // console.log("[HeroSection] floating script injected");
+    } else {
+      // console.log("[HeroSection] floating script skipped — widget already exists from layout.js");
+    }
+
+    return () => {
+      console.log("[HeroSection] useEffect cleanup (unmounting)");
+      document.body.removeChild(embedded);
+      if (floating) document.body.removeChild(floating);
+    };
+  }, []);
+
   return (
     <div>
-      <section className="relative mb-12 overflow-hidden py-24 sm:py-32">
+      <section className="relative mb-12 overflow-hidden pb-24 pt-10 sm:pb-32">
         <div className="w-full">
           <div className="grid grid-cols-1 items-center gap-12 text-left lg:grid-cols-2">
             {/* Left Side Content */}
@@ -57,14 +99,12 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Right Side Icon Container */}
-            <div className="flex h-full min-h-[400px] w-full items-center justify-center rounded-xl border-2 border-gray-200 bg-gray-50">
-              <img
-                src="/icons/Contextgpt_icon.svg"
-                alt="ContextGPT"
-                className="h-64 w-64 object-contain"
-              />
-            </div>
+            {/* Right Side — Embedded Chatbot */}
+            <div
+              id="contextgpt-hero-container"
+              className="h-[630px] w-full max-w-[500px] overflow-hidden rounded-3xl border-2 border-blue-400"
+            />
+ 
           </div>
         </div>
       </section>
@@ -87,6 +127,7 @@ import {
   Activity,
 } from "lucide-react";
 
+
 const companies = [
   { name: "Lumios", icon: <ShieldCheck className="h-8 w-8" /> },
   // { name: "Vertex", icon: <Zap className="w-8 h-8" /> },
@@ -98,12 +139,12 @@ const companies = [
   // { name: "Echo", icon: <Activity className="w-8 h-8" /> },
 ];
 
-function TrustedBySection() {
+export function TrustedBySection() {
   return (
-    <section className="">
+    <section className="mb-4">
       <div className="w-full">
-        <p className="mb-12 text-center text-sm font-medium tracking-wide text-gray-400 uppercase">
-          Trusted by <span className="font-bold text-gray-600">100+</span>{" "}
+        <p className="mb-4 text-center text-[10px] font-medium tracking-[1px] text-gray-400 uppercase">
+          Trusted by <span className="font-bold text-gray-600">40+</span>{" "}
           Customers worldwide
         </p>
         <div className="flex flex-wrap items-center justify-center gap-10 md:gap-15">

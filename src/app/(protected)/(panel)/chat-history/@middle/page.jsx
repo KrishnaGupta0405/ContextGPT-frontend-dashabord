@@ -31,6 +31,11 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
   AlertCircle,
@@ -44,6 +49,13 @@ import {
   Filter,
   PlusCircle,
   PlayIcon,
+  ThumbsUp,
+  ThumbsDown,
+  Mail,
+  MailOpen,
+  Tag,
+  Cpu,
+  ChevronDown,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -88,6 +100,16 @@ const ChatHistoryMiddle = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState("open");
+  const [advancedFilters, setAdvancedFilters] = useState({
+    readStatus: null,      // "read" | "unread" | null
+    escalated: null,       // true | false | null
+    important: null,       // true | false | null
+    anonymous: null,       // true | false | null
+    feedback: null,        // "positive" | "negative" | null
+    tags: [],              // string[]
+    llmModel: null,        // string | null
+  });
+  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [editingThreadId, setEditingThreadId] = useState(null);
@@ -169,7 +191,7 @@ const ChatHistoryMiddle = () => {
       setLoading(true);
     }
     try {
-      const cacheKey = `chat_threads_${selectedChatbot.id}_${filter}`;
+      const cacheKey = `chat_threads_${selectedChatbot.id}_${filter}_${JSON.stringify(advancedFilters)}`;
 
       if (!append) {
         const cachedData = sessionStorage.getItem(cacheKey);
@@ -178,27 +200,29 @@ const ChatHistoryMiddle = () => {
         }
       }
 
-      // Build query params based on active filter
+      // Build query params based on status filter
       const params = new URLSearchParams({ page: pageNum, limit: 20 });
-      switch (filter) {
-        case "open":
-          params.set("resolved", "false");
-          params.set("archived", "false");
-          break;
-        case "escalated":
-          params.set("escalated", "true");
-          break;
-        case "important":
-          params.set("important", "true");
-          break;
-        case "resolved":
-          params.set("resolved", "true");
-          break;
-        case "archived":
-          params.set("archived", "true");
-          break;
-        // "all" — no extra filters
+      if (filter === "open") {
+        params.set("resolved", "false");
+        params.set("archived", "false");
+      } else if (filter === "closed") {
+        params.set("resolved", "true");
       }
+      // "all" — no status filter
+
+      // Advanced filters
+      if (advancedFilters.readStatus === "unread") params.set("unread", "true");
+      if (advancedFilters.readStatus === "read") params.set("unread", "false");
+      if (advancedFilters.escalated === true) params.set("escalated", "true");
+      if (advancedFilters.escalated === false) params.set("escalated", "false");
+      if (advancedFilters.important === true) params.set("important", "true");
+      if (advancedFilters.important === false) params.set("important", "false");
+      if (advancedFilters.anonymous === true) params.set("anonymous", "true");
+      if (advancedFilters.anonymous === false) params.set("anonymous", "false");
+      if (advancedFilters.feedback === "positive") params.set("feedback", "positive");
+      if (advancedFilters.feedback === "negative") params.set("feedback", "negative");
+      if (advancedFilters.llmModel) params.set("llmModel", advancedFilters.llmModel);
+      if (advancedFilters.tags.length > 0) params.set("tags", advancedFilters.tags.join(","));
 
       const response = await api.get(
         `/chatting/${selectedChatbot.id}/threads?${params.toString()}`
@@ -208,7 +232,6 @@ const ChatHistoryMiddle = () => {
         const newThreads = response.data.data.threads;
         const pagination = response.data.data.pagination;
 
-        // Stop if API returned empty threads (page beyond actual data)
         if (newThreads.length === 0) {
           setHasMore(false);
           return;
@@ -224,18 +247,16 @@ const ChatHistoryMiddle = () => {
         setPage(pageNum);
         setHasMore(pageNum < pagination.totalPages);
       } else {
-        // API returned success: false — stop trying to load more
         if (append) setHasMore(false);
       }
     } catch (error) {
       console.error("Failed to fetch threads:", error);
-      // Stop infinite retry on error
       if (append) setHasMore(false);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [selectedChatbot?.id, filter]);
+  }, [selectedChatbot?.id, filter, advancedFilters]);
 
   // Always keep a ref to the latest fetchThreads so socket listeners
   // never capture a stale closure.
@@ -244,13 +265,77 @@ const ChatHistoryMiddle = () => {
     fetchThreadsRef.current = fetchThreads;
   }, [fetchThreads]);
 
-  // Re-fetch when chatbot or filter changes
+  // Sync advancedFilters to/from URL query params
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    const readStatus = params.get("readStatus") || null;
+    const escalated = params.get("escalated") !== null ? params.get("escalated") === "true" : null;
+    const important = params.get("important") !== null ? params.get("important") === "true" : null;
+    const anonymous = params.get("anonymous") !== null ? params.get("anonymous") === "true" : null;
+    const feedback = params.get("feedback") || null;
+    const llmModel = params.get("llmModel") || null;
+    const tagsRaw = params.get("tags");
+    const tags = tagsRaw ? tagsRaw.split(",").filter(Boolean) : [];
+    const statusFilter = params.get("status") || "open";
+
+    setFilter(statusFilter);
+    setAdvancedFilters({ readStatus, escalated, important, anonymous, feedback, llmModel, tags });
+  // Only run on mount to initialize from URL
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateUrlFilters = useCallback((newFilter, newAdvanced) => {
+    const params = new URLSearchParams(searchParams);
+    // Preserve threadId
+    params.set("status", newFilter);
+    // Clear previous advanced filter params
+    ["readStatus", "escalated", "important", "anonymous", "feedback", "llmModel", "tags"].forEach(
+      (k) => params.delete(k)
+    );
+    if (newAdvanced.readStatus) params.set("readStatus", newAdvanced.readStatus);
+    if (newAdvanced.escalated !== null && newAdvanced.escalated !== undefined) params.set("escalated", String(newAdvanced.escalated));
+    if (newAdvanced.important !== null && newAdvanced.important !== undefined) params.set("important", String(newAdvanced.important));
+    if (newAdvanced.anonymous !== null && newAdvanced.anonymous !== undefined) params.set("anonymous", String(newAdvanced.anonymous));
+    if (newAdvanced.feedback) params.set("feedback", newAdvanced.feedback);
+    if (newAdvanced.llmModel) params.set("llmModel", newAdvanced.llmModel);
+    if (newAdvanced.tags?.length > 0) params.set("tags", newAdvanced.tags.join(","));
+    router.replace(`?${params.toString()}`);
+  }, [searchParams, router]);
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    updateUrlFilters(newFilter, advancedFilters);
+  };
+
+  const handleAdvancedFilterToggleWithUrl = useCallback((key, value) => {
+    const updated = { ...advancedFilters, [key]: advancedFilters[key] === value ? null : value };
+    setAdvancedFilters(updated);
+    updateUrlFilters(filter, updated);
+  }, [advancedFilters, filter, updateUrlFilters]);
+
+  const clearAllAdvancedFilters = () => {
+    const cleared = { readStatus: null, escalated: null, important: null, anonymous: null, feedback: null, tags: [], llmModel: null };
+    setAdvancedFilters(cleared);
+    updateUrlFilters(filter, cleared);
+  };
+
+  const activeAdvancedFilterCount = [
+    advancedFilters.readStatus,
+    advancedFilters.escalated,
+    advancedFilters.important,
+    advancedFilters.anonymous,
+    advancedFilters.feedback,
+    advancedFilters.llmModel,
+    advancedFilters.tags.length > 0 ? "tags" : null,
+  ].filter(Boolean).length;
+
+  // Re-fetch when chatbot, filter, or advancedFilters change
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     setSelectedThreadIds(new Set());
     fetchThreads(1, false);
-  }, [selectedChatbot?.id, filter]);
+  }, [selectedChatbot?.id, filter, advancedFilters]);
 
   const scrollAreaRef = useRef(null);
 
@@ -334,10 +419,7 @@ const ChatHistoryMiddle = () => {
         const wouldMatch = (() => {
           switch (filter) {
             case "open": return !(thread.resolved ?? false) && !(thread.archived ?? false);
-            case "escalated": return !!thread.escalated;
-            case "important": return !!thread.important;
-            case "resolved": return !!thread.resolved;
-            case "archived": return !!thread.archived;
+            case "closed": return !!(thread.resolved ?? false);
             case "all": return true;
             default: return true;
           }
@@ -488,10 +570,7 @@ const ChatHistoryMiddle = () => {
           if (selectedVisitor !== "all" && thread.visitorId !== selectedVisitor) return false;
           switch (filter) {
             case "open": return !thread.resolved && !thread.archived;
-            case "escalated": return thread.escalated;
-            case "important": return thread.important;
-            case "resolved": return thread.resolved;
-            case "archived": return thread.archived;
+            case "closed": return !!thread.resolved;
             case "all": return true;
             default: return true;
           }
@@ -623,19 +702,33 @@ const ChatHistoryMiddle = () => {
     return Array.from(visitors.values());
   }, [threads]);
 
-  // Filtering is now done server-side; only apply visitor filter client-side
+  const uniqueTags = useMemo(() => {
+    const tagSet = new Set();
+    threads.forEach((t) => {
+      if (Array.isArray(t.tags)) t.tags.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet);
+  }, [threads]);
+
+  const uniqueLlmModels = useMemo(() => {
+    const modelMap = new Map();
+    threads.forEach((t) => {
+      if (t.llmModel?.id && !modelMap.has(t.llmModel.id)) {
+        modelMap.set(t.llmModel.id, t.llmModel);
+      }
+    });
+    return Array.from(modelMap.values());
+  }, [threads]);
+
   const filteredThreads = threads.filter((thread) => {
     if (fadingThreadIds.has(thread.id)) return true;
-    if (selectedVisitor !== "all" && thread.visitorId !== selectedVisitor) {
-      return false;
+    if (selectedVisitor !== "all" && thread.visitorId !== selectedVisitor) return false;
+    if (advancedFilters.tags.length > 0) {
+      const threadTags = Array.isArray(thread.tags) ? thread.tags : [];
+      if (!advancedFilters.tags.every((tag) => threadTags.includes(tag))) return false;
     }
     return true;
   });
-
-  // Counts reflect loaded threads for the active server-side filter
-  const counts = {
-    [filter]: filteredThreads.length,
-  };
 
   if (!selectedChatbot) {
     return (
@@ -713,59 +806,251 @@ const ChatHistoryMiddle = () => {
           </div>
         </div>
 
+        {/* Status tabs + advanced filter */}
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          {/* Status: All / Open / Closed */}
+          <div className="bg-muted flex h-9 items-center rounded-lg p-1">
+            {[
+              { value: "all", label: "All" },
+              { value: "open", label: "Open" },
+              { value: "closed", label: "Closed" },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => handleFilterChange(value)}
+                className={cn(
+                  "rounded-md px-3 py-1 text-sm font-medium transition-all",
+                  filter === value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Advanced filter popover */}
+          <Popover open={filterPopoverOpen} onOpenChange={setFilterPopoverOpen}>
+            <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "h-9 gap-2 border-dashed transition-all",
-                  filter !== "open"
-                    ? "border-blue-500 bg-blue-50/50 text-blue-600 hover:bg-blue-100/50 hover:text-blue-700"
-                    : "text-muted-foreground hover:bg-muted/50",
+                  "h-9 gap-1.5 transition-all",
+                  activeAdvancedFilterCount > 0
+                    ? "border-blue-500 bg-blue-50/50 text-blue-600 hover:bg-blue-100/50"
+                    : "text-muted-foreground",
                 )}
               >
                 <Filter className="h-3.5 w-3.5" />
-                {filter === "all"
-                  ? "All Threads"
-                  : `${filter.charAt(0).toUpperCase() + filter.slice(1)}`}
-                {counts[filter] > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="h-4 border-0 bg-blue-100 px-1 text-[10px] text-blue-700"
-                  >
-                    {counts[filter]}
+                Filter
+                {activeAdvancedFilterCount > 0 && (
+                  <Badge className="h-4 min-w-4 border-0 bg-blue-600 px-1 text-[10px] text-white">
+                    {activeAdvancedFilterCount}
                   </Badge>
                 )}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[200px]">
-              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={filter} onValueChange={setFilter}>
-                <DropdownMenuRadioItem value="open" className="text-sm">
-                  Open
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="escalated" className="text-sm">
-                  Escalated
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="important" className="text-sm">
-                  Important
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="resolved" className="text-sm">
-                  Resolved
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="archived" className="text-sm">
-                  Archived
-                </DropdownMenuRadioItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioItem value="all" className="text-sm">
-                  All Threads
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-72 p-0" sideOffset={4}>
+              <div className="flex items-center justify-between border-b px-3 py-2">
+                <span className="text-sm font-semibold">Filters</span>
+                {activeAdvancedFilterCount > 0 && (
+                  <button
+                    onClick={clearAllAdvancedFilters}
+                    className="text-muted-foreground hover:text-foreground text-xs underline-offset-2 hover:underline"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              <div className="divide-y">
+                {/* Tags */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">Tags</p>
+                  {uniqueTags.length === 0 ? (
+                    <p className="text-muted-foreground text-xs italic">No tags in loaded threads</p>
+                  ) : (
+                    <div className="overflow-x-auto pb-1">
+                      <div
+                        className="grid gap-2"
+                        style={{ gridTemplateRows: "repeat(2, auto)", gridAutoFlow: "column", width: "max-content" }}
+                      >
+                        {uniqueTags.map((tag) => (
+                          <button
+                            key={tag}
+                            onClick={() => {
+                              const has = advancedFilters.tags.includes(tag);
+                              const updated = {
+                                ...advancedFilters,
+                                tags: has ? advancedFilters.tags.filter((t) => t !== tag) : [...advancedFilters.tags, tag],
+                              };
+                              setAdvancedFilters(updated);
+                              updateUrlFilters(filter, updated);
+                            }}
+                            className={cn(
+                              "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                              advancedFilters.tags.includes(tag)
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                            )}
+                          >
+                            <Tag className="h-3 w-3" /> {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Read / Unread */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">Read/Unread</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: "unread", label: "Unread", icon: <Mail className="h-3.5 w-3.5" /> },
+                      { value: "read", label: "Read", icon: <MailOpen className="h-3.5 w-3.5" /> },
+                    ].map(({ value, label, icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => handleAdvancedFilterToggleWithUrl("readStatus", value)}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                          advancedFilters.readStatus === value
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                        )}
+                      >
+                        {icon} {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* User Escalations */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">User Escalations</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: true, label: "Escalated", icon: <AlertCircle className="h-3.5 w-3.5 text-red-500" /> },
+                      { value: false, label: "Not Escalated", icon: <Info className="h-3.5 w-3.5 text-slate-400" /> },
+                    ].map(({ value, label, icon }) => (
+                      <button
+                        key={String(value)}
+                        onClick={() => handleAdvancedFilterToggleWithUrl("escalated", value)}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                          advancedFilters.escalated === value
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                        )}
+                      >
+                        {icon} {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Importance */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">Importance</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: true, label: "Important", icon: <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" /> },
+                      { value: false, label: "Not Important", icon: <Star className="h-3.5 w-3.5 text-slate-300" /> },
+                    ].map(({ value, label, icon }) => (
+                      <button
+                        key={String(value)}
+                        onClick={() => handleAdvancedFilterToggleWithUrl("important", value)}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                          advancedFilters.important === value
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                        )}
+                      >
+                        {icon} {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* User Information */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">User Information</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: true, label: "Anonymous" },
+                      { value: false, label: "Not Anonymous" },
+                    ].map(({ value, label }) => (
+                      <button
+                        key={String(value)}
+                        onClick={() => handleAdvancedFilterToggleWithUrl("anonymous", value)}
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                          advancedFilters.anonymous === value
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* User Reactions */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">User Reactions</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: "positive", label: "Positive", icon: <ThumbsUp className="h-3.5 w-3.5 text-green-500" /> },
+                      { value: "negative", label: "Negative", icon: <ThumbsDown className="h-3.5 w-3.5 text-red-400" /> },
+                    ].map(({ value, label, icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => handleAdvancedFilterToggleWithUrl("feedback", value)}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                          advancedFilters.feedback === value
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                        )}
+                      >
+                        {icon} {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* GPT Model */}
+                <div className="px-3 py-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">GPT Model</p>
+                  {uniqueLlmModels.length === 0 ? (
+                    <p className="text-muted-foreground text-xs italic">No model data in loaded threads</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {uniqueLlmModels.map((model) => (
+                        <button
+                          key={model.id}
+                          onClick={() => handleAdvancedFilterToggleWithUrl("llmModel", model.title)}
+                          className={cn(
+                            "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                            advancedFilters.llmModel === model.title
+                              ? "border-blue-500 bg-blue-50 text-blue-700"
+                              : "border-border text-muted-foreground hover:border-blue-300 hover:text-foreground",
+                          )}
+                        >
+                          <Cpu className="h-3 w-3" /> {model.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>
@@ -824,7 +1109,7 @@ const ChatHistoryMiddle = () => {
             ))
           ) : filteredThreads.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center">
-              No {filter !== "all" ? filter : ""} chat threads found.
+              No {filter === "open" ? "open" : filter === "closed" ? "closed" : ""} chat threads found.
             </p>
           ) : (
             <>

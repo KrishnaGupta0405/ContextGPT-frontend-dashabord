@@ -68,6 +68,7 @@ import { useChatbot } from "@/context/ChatbotContext";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 import {
   BadgeCheck,
@@ -257,7 +258,7 @@ const data = {
   advanced: [
     { title: "Chatbot Members", url: "/chatbot-members", icon: Users },
     { title: "Account Members", url: "/account-members", icon: Users },
-    { title: "Referral", url: "/referral", icon: UserStar },
+    { title: "Referral", url: "/referral", icon: UserStar, disabled: true },
     { title: "Integrations", url: "/integrations", icon: Plug },
     { title: "Webhooks", url: "/webhooks", icon: Zap },
     { title: "Settings", url: "/settings", icon: Settings },
@@ -429,6 +430,7 @@ function NavItem({ item }) {
   const router = useRouter();
   const { guardNavigation } = useUnsavedChanges();
   const hasItems = item.items && item.items.length > 0;
+  const isDisabled = item.title === "Referral" || item.disabled;
 
   // Check if current page is this item or one of its sub-items
   const isActive =
@@ -436,26 +438,45 @@ function NavItem({ item }) {
 
   const handleClick = (e, href) => {
     e.preventDefault();
+    if (isDisabled) return;
     guardNavigation(() => router.push(href));
   };
 
   if (!hasItems) {
+    const buttonEl = (
+      <SidebarMenuButton
+        asChild
+        tooltip={isDisabled ? undefined : item.title}
+        isActive={pathname === item.url}
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
+      >
+        <a
+          href={item.url}
+          onClick={(e) => handleClick(e, item.url)}
+          className={`flex items-center gap-2 ${isDisabled ? "pointer-events-none opacity-50" : ""}`}
+          tabIndex={isDisabled ? -1 : undefined}
+        >
+          {item.icon && <item.icon />}
+          <span>{item.title}</span>
+        </a>
+      </SidebarMenuButton>
+    );
+
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton
-          asChild
-          tooltip={item.title}
-          isActive={pathname === item.url}
-        >
-          <a
-            href={item.url}
-            onClick={(e) => handleClick(e, item.url)}
-            className="flex items-center gap-2"
-          >
-            {item.icon && <item.icon />}
-            <span>{item.title}</span>
-          </a>
-        </SidebarMenuButton>
+        {isDisabled ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-full cursor-not-allowed">{buttonEl}</div>
+            </TooltipTrigger>
+            <TooltipContent side="right" align="center">
+              Under testing
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          buttonEl
+        )}
         {item.badge && (
           <SidebarMenuBadge className="bg-emerald-100 text-[10px] font-bold text-emerald-700">
             {item.badge}

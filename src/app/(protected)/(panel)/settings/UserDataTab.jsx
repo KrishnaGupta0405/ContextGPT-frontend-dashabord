@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { X, Sparkles, Check, Loader2 } from "lucide-react";
 import { useChatbot } from "@/context/ChatbotContext";
 import { useUnsavedChanges } from "@/context/UnsavedChangesContext";
@@ -19,16 +20,18 @@ const UserDataTab = () => {
     phoneNumber: true,
   });
 
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
+
   const toggleDataType = (key) => {
     setDataTypes((prev) => ({ ...prev, [key]: !prev[key] }));
     markDirty();
   };
 
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchLeadSettings();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   useEffect(() => {
     return () => markClean();
@@ -96,14 +99,6 @@ const UserDataTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-5xl space-y-8 pb-24">
       {/* Banner */}
@@ -149,93 +144,107 @@ const UserDataTab = () => {
           </p>
         </div>
 
-        <div className="flex flex-col space-y-5">
-          {/* Mandatory */}
-          <label
-            className="flex cursor-pointer items-start gap-3"
-            onClick={() => { setCollectMode("mandatory"); markDirty(); }}
-          >
-            <div className="mt-0.5 flex items-center justify-center">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                  collectMode === "mandatory"
-                    ? "border-blue-600"
-                    : "border-gray-300"
-                }`}
-              >
-                {collectMode === "mandatory" && (
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                )}
+        {initialLoading ? (
+          <div className="flex flex-col space-y-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="mt-0.5 h-4 w-4 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[14px] font-semibold text-gray-900">
-                Mandatory
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-5">
+            {/* Mandatory */}
+            <label
+              className="flex cursor-pointer items-start gap-3"
+              onClick={() => { setCollectMode("mandatory"); markDirty(); }}
+            >
+              <div className="mt-0.5 flex items-center justify-center">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    collectMode === "mandatory"
+                      ? "border-blue-600"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {collectMode === "mandatory" && (
+                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  )}
+                </div>
               </div>
-              <div className="text-[13px] text-gray-500">
-                User has to enter their details before they can continue the
-                conversation.
+              <div>
+                <div className="text-[14px] font-semibold text-gray-900">
+                  Mandatory
+                </div>
+                <div className="text-[13px] text-gray-500">
+                  User has to enter their details before they can continue the
+                  conversation.
+                </div>
               </div>
-            </div>
-          </label>
+            </label>
 
-          {/* Optional */}
-          <label
-            className="flex cursor-pointer items-start gap-3"
-            onClick={() => { setCollectMode("optional"); markDirty(); }}
-          >
-            <div className="mt-0.5 flex items-center justify-center">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                  collectMode === "optional"
-                    ? "border-blue-600"
-                    : "border-gray-300"
-                }`}
-              >
-                {collectMode === "optional" && (
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                )}
+            {/* Optional */}
+            <label
+              className="flex cursor-pointer items-start gap-3"
+              onClick={() => { setCollectMode("optional"); markDirty(); }}
+            >
+              <div className="mt-0.5 flex items-center justify-center">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    collectMode === "optional"
+                      ? "border-blue-600"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {collectMode === "optional" && (
+                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  )}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[14px] font-semibold text-gray-900">
-                Optional
+              <div>
+                <div className="text-[14px] font-semibold text-gray-900">
+                  Optional
+                </div>
+                <div className="text-[13px] text-gray-500">
+                  We try to collect user details, but user should still be able to
+                  continue chatting by skipping the user details forms
+                </div>
               </div>
-              <div className="text-[13px] text-gray-500">
-                We try to collect user details, but user should still be able to
-                continue chatting by skipping the user details forms
-              </div>
-            </div>
-          </label>
+            </label>
 
-          {/* Do Not Collect */}
-          <label
-            className="flex cursor-pointer items-start gap-3"
-            onClick={() => { setCollectMode("do_not_collect"); markDirty(); }}
-          >
-            <div className="mt-0.5 flex items-center justify-center">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                  collectMode === "do_not_collect"
-                    ? "border-blue-600"
-                    : "border-gray-300"
-                }`}
-              >
-                {collectMode === "do_not_collect" && (
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                )}
+            {/* Do Not Collect */}
+            <label
+              className="flex cursor-pointer items-start gap-3"
+              onClick={() => { setCollectMode("do_not_collect"); markDirty(); }}
+            >
+              <div className="mt-0.5 flex items-center justify-center">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    collectMode === "do_not_collect"
+                      ? "border-blue-600"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {collectMode === "do_not_collect" && (
+                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  )}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[14px] font-semibold text-gray-900">
-                Do Not Collect
+              <div>
+                <div className="text-[14px] font-semibold text-gray-900">
+                  Do Not Collect
+                </div>
+                <div className="text-[13px] text-gray-500">
+                  We will not collect any user details
+                </div>
               </div>
-              <div className="text-[13px] text-gray-500">
-                We will not collect any user details
-              </div>
-            </div>
-          </label>
-        </div>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Data Types */}
@@ -249,57 +258,68 @@ const UserDataTab = () => {
           </p>
         </div>
 
-        <div className="flex flex-col space-y-4">
-          {/* Name */}
-          <label
-            className="flex cursor-pointer items-center gap-3"
-            onClick={() => toggleDataType("name")}
-          >
-            <div
-              className={`flex h-[18px] w-[18px] items-center justify-center rounded-[4px] border transition-colors ${
-                dataTypes.name
-                  ? "border-blue-600 bg-blue-600"
-                  : "border-gray-300 bg-white"
-              }`}
+        {initialLoading ? (
+          <div className="flex flex-col space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-[18px] w-[18px] rounded-[4px]" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-4">
+            {/* Name */}
+            <label
+              className="flex cursor-pointer items-center gap-3"
+              onClick={() => toggleDataType("name")}
             >
-              {dataTypes.name && <Check className="h-3 w-3 text-white" />}
-            </div>
-            <span className="text-[14px] font-semibold text-gray-900">
-              Name
-            </span>
-          </label>
+              <div
+                className={`flex h-[18px] w-[18px] items-center justify-center rounded-[4px] border transition-colors ${
+                  dataTypes.name
+                    ? "border-blue-600 bg-blue-600"
+                    : "border-gray-300 bg-white"
+                }`}
+              >
+                {dataTypes.name && <Check className="h-3 w-3 text-white" />}
+              </div>
+              <span className="text-[14px] font-semibold text-gray-900">
+                Name
+              </span>
+            </label>
 
-          {/* Email Address */}
-          <label className="flex items-center gap-3 opacity-60">
-            <div className="flex h-[18px] w-[18px] items-center justify-center rounded-[4px] border border-blue-600 bg-blue-600">
-              <Check className="h-3 w-3 text-white" />
-            </div>
-            <span className="text-[14px] font-semibold text-gray-900">
-              Email Address
-            </span>
-          </label>
-
-          {/* Phone Number */}
-          <label
-            className="flex cursor-pointer items-center gap-3"
-            onClick={() => toggleDataType("phoneNumber")}
-          >
-            <div
-              className={`flex h-[18px] w-[18px] items-center justify-center rounded-[4px] border transition-colors ${
-                dataTypes.phoneNumber
-                  ? "border-blue-600 bg-blue-600"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              {dataTypes.phoneNumber && (
+            {/* Email Address */}
+            <label className="flex items-center gap-3 opacity-60">
+              <div className="flex h-[18px] w-[18px] items-center justify-center rounded-[4px] border border-blue-600 bg-blue-600">
                 <Check className="h-3 w-3 text-white" />
-              )}
-            </div>
-            <span className="text-[14px] font-semibold text-gray-900">
-              Phone Number
-            </span>
-          </label>
-        </div>
+              </div>
+              <span className="text-[14px] font-semibold text-gray-900">
+                Email Address
+              </span>
+            </label>
+
+            {/* Phone Number */}
+            <label
+              className="flex cursor-pointer items-center gap-3"
+              onClick={() => toggleDataType("phoneNumber")}
+            >
+              <div
+                className={`flex h-[18px] w-[18px] items-center justify-center rounded-[4px] border transition-colors ${
+                  dataTypes.phoneNumber
+                    ? "border-blue-600 bg-blue-600"
+                    : "border-gray-300 bg-white"
+                }`}
+              >
+                {dataTypes.phoneNumber && (
+                  <Check className="h-3 w-3 text-white" />
+                )}
+              </div>
+              <span className="text-[14px] font-semibold text-gray-900">
+                Phone Number
+              </span>
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="fixed right-0 bottom-0 z-10 w-[calc(100%-256px)] border-t bg-white p-4">

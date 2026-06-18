@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -8,44 +8,19 @@ import { useChatbot } from "@/context/ChatbotContext";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 
+
 export function AddYoutubeContent({ onBack, onAdd }) {
   const { selectedChatbot } = useChatbot();
   const [youtubeUrlsText, setYoutubeUrlsText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [quota, setQuota] = useState(null); // { pagesRemaining, estimatedVideosRemaining }
 
-  // Helper to extract a YouTube Video ID from various URL formats
-  const extractVideoId = (url) => {
-    try {
-      if (!url) return null;
-      const urlObj = new URL(url);
-
-      if (urlObj.hostname.includes("youtube.com")) {
-        // Handle youtube.com/watch?v=XXXX
-        if (urlObj.searchParams.has("v")) {
-          return urlObj.searchParams.get("v");
-        }
-        // Handle edge youtube.com/embed/XXXX
-        if (urlObj.pathname.startsWith("/embed/")) {
-          return urlObj.pathname.split("/")[2];
-        }
-        // Handle youtube.com/shorts/XXXX
-        if (urlObj.pathname.startsWith("/shorts/")) {
-          return urlObj.pathname.split("/")[2];
-        }
-      }
-
-      // Handle youtu.be/XXXX
-      if (urlObj.hostname === "youtu.be") {
-        return urlObj.pathname.slice(1);
-      }
-    } catch (e) {
-      // In case it's not a valid full URL but just the ID
-      if (url.length === 11 && !url.includes("/") && !url.includes("?")) {
-        return url;
-      }
-    }
-    return null;
-  };
+  useEffect(() => {
+    api
+      .get("/ingestion/youtube-quota")
+      .then((r) => setQuota(r.data?.data ?? null))
+      .catch(() => {}); // non-blocking — show "—" on failure
+  }, []);
 
   const handleSubmit = async () => {
     if (!youtubeUrlsText.trim()) {
@@ -53,17 +28,9 @@ export function AddYoutubeContent({ onBack, onAdd }) {
       return;
     }
 
-    const lines = youtubeUrlsText
-      .split("\n")
-      .map((url) => url.trim())
-      .filter((url) => url.length > 0);
-
-    const videoIds = lines
-      .map(extractVideoId)
-      .filter((id) => id && id.length > 0);
-
-    if (videoIds.length === 0) {
-      toast.error("No valid YouTube Video URLs found");
+    const urls = youtubeUrlsText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (!urls.length) {
+      toast.error("No valid YouTube URLs found");
       return;
     }
 
@@ -75,30 +42,25 @@ export function AddYoutubeContent({ onBack, onAdd }) {
 
     try {
       setIsSubmitting(true);
-      const response = await api.post("/ingestion/youtube-transcripts", {
-        chatbotId,
-        videoIds,
-      });
-
-      if (response.data?.success) {
-        toast.success(
-          response.data.message || "YouTube transcripts processing started.",
-        );
-        if (onAdd) onAdd();
+      const result = await api.post("/ingestion/youtube", { chatbotId, urls });
+      const data = result.data?.data;
+      if (data?.parseErrors?.length > 0 && !data?.successful?.length && !data?.deferred?.length) {
+        toast.error("No valid YouTube URLs recognised. Check your input.");
       } else {
-        toast.error(
-          response.data?.message || "Failed to process YouTube transcripts",
-        );
+        toast.success("YouTube content queued — processing in the background.");
+        if (onAdd) onAdd();
       }
     } catch (error) {
-      console.error("Error submitting YouTube URLs:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to submit YouTube URLs",
-      );
+      toast.error(error.response?.data?.message || "Failed to submit YouTube content");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const quotaLine =
+    quota == null
+      ? "Loading quota..."
+      : `You have ${quota.pagesRemaining} pages remaining (~${quota.estimatedMinutesRemaining} min of video — rough estimate, actual usage is calculated after processing).`;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -124,15 +86,12 @@ export function AddYoutubeContent({ onBack, onAdd }) {
             </Label>
             <Textarea
               className="min-h-[160px]"
-              placeholder="https://www.youtube.com/watch?v=..."
+              placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/playlist?list=...&#10;https://www.youtube.com/@channel"
               value={youtubeUrlsText}
               onChange={(e) => setYoutubeUrlsText(e.target.value)}
             />
             <div className="mt-2 space-y-1 text-sm text-slate-500">
-              <p>
-                <strong>3 / 647 links</strong> - Enter YouTube URLs, one per
-                line. Supported formats:
-              </p>
+              <p>Enter one URL per line. Supported formats:</p>
               <p>
                 <strong>Videos:</strong> youtube.com/watch?v=... or youtu.be/...
               </p>
@@ -144,10 +103,7 @@ export function AddYoutubeContent({ onBack, onAdd }) {
                 youtube.com/channel/...
               </p>
             </div>
-            <p className="mt-4 text-sm text-slate-500">
-              The system will automatically extract transcripts from the videos.
-              You have 647 pages remaining in your quota.
-            </p>
+            <p className="mt-4 text-sm text-slate-500">{quotaLine}</p>
           </div>
         </div>
 

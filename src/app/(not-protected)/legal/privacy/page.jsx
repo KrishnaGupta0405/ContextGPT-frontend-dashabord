@@ -532,6 +532,14 @@ export default function Privacy() {
                 </Link>
               </td>
             </tr>
+            <tr>
+              <td className="border border-gray-300 p-2">Supadata</td>
+              <td className="border border-gray-300 p-2">
+                <Link href="https://supadata.ai/privacy" className="text-black underline">
+                  https://supadata.ai/privacy
+                </Link>
+              </td>
+            </tr>
             {/* <tr>
               <td className="border border-gray-300 p-2">Bento</td>
               <td className="border border-gray-300 p-2">

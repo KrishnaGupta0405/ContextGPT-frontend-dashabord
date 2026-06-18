@@ -46,6 +46,7 @@ import {
   ArrowUpRight,
   Eye,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── Live Preview ─────────────────────────────────────────────────────────────
 function LeadFormPreview({ values }) {
@@ -373,6 +374,7 @@ const TEMPLATE_CONFIGS = {
 const SettingsTab = () => {
   const { selectedChatbot } = useChatbot();
   const { markDirty, markClean } = useUnsavedChanges();
+  const chatbotId = selectedChatbot?.id || selectedChatbot?.chatbotId;
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isNewSettings, setIsNewSettings] = useState(false);
@@ -503,10 +505,10 @@ const SettingsTab = () => {
   };
 
   useEffect(() => {
-    if (selectedChatbot?.id || selectedChatbot?.chatbotId) {
+    if (chatbotId) {
       fetchSettings();
     }
-  }, [selectedChatbot]);
+  }, [chatbotId]);
 
   const fetchSettings = async () => {
     setInitialLoading(true);
@@ -661,14 +663,6 @@ const SettingsTab = () => {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex h-[400px] items-center justify-center rounded-xl border bg-white p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
   return (
     <div className="flex gap-6 items-start">
     <div className="min-w-0 flex-1 rounded-xl border bg-white p-6 shadow-sm">
@@ -696,10 +690,14 @@ const SettingsTab = () => {
                   </FormDescription>
                 </div>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  {initialLoading ? (
+                    <Skeleton className="h-6 w-10 rounded-full" />
+                  ) : (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 </FormControl>
               </FormItem>
             )}
@@ -723,11 +721,15 @@ const SettingsTab = () => {
                       <FormLabel className="font-normal">Name</FormLabel>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={!isEnabled}
-                      />
+                      {initialLoading ? (
+                        <Skeleton className="h-6 w-10 rounded-full" />
+                      ) : (
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={!isEnabled}
+                        />
+                      )}
                     </FormControl>
                   </FormItem>
                 )}
@@ -743,11 +745,15 @@ const SettingsTab = () => {
                       </FormLabel>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={!isEnabled}
-                      />
+                      {initialLoading ? (
+                        <Skeleton className="h-6 w-10 rounded-full" />
+                      ) : (
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={!isEnabled}
+                        />
+                      )}
                     </FormControl>
                   </FormItem>
                 )}
@@ -801,6 +807,16 @@ const SettingsTab = () => {
                       When to collect leads
                     </FormLabel>
                     <FormControl>
+                      {initialLoading ? (
+                        <div className="space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="flex items-center gap-3">
+                              <Skeleton className="h-4 w-4 rounded-full" />
+                              <Skeleton className="h-4 w-48" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -854,6 +870,7 @@ const SettingsTab = () => {
                           </div>
                         </div>
                       </RadioGroup>
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -927,12 +944,16 @@ const SettingsTab = () => {
                       </TooltipProvider>
                     </div>
                     <FormControl>
-                      <Textarea
-                        placeholder="pricing, demo, consultation, quote, appointment, contact, schedule, buy, purchase"
-                        className="min-h-[120px] resize-none border-slate-200"
-                        {...field}
-                        disabled={!isEnabled}
-                      />
+                      {initialLoading ? (
+                        <Skeleton className="h-[120px] w-full rounded-md" />
+                      ) : (
+                        <Textarea
+                          placeholder="pricing, demo, consultation, quote, appointment, contact, schedule, buy, purchase"
+                          className="min-h-[120px] resize-none border-slate-200"
+                          {...field}
+                          disabled={!isEnabled}
+                        />
+                      )}
                     </FormControl>
                     <FormDescription className="text-xs leading-relaxed text-slate-400">
                       Enter keywords separated by commas. When visitors mention
@@ -973,6 +994,9 @@ const SettingsTab = () => {
                   <FormLabel className="text-xs font-semibold text-slate-500 uppercase">
                     Template Selection
                   </FormLabel>
+                  {initialLoading ? (
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  ) : (
                   <Select
                     onValueChange={(val) => handleTemplateChange(val, field.onChange)}
                     value={field.value || "custom"}
@@ -1067,6 +1091,7 @@ const SettingsTab = () => {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -1081,7 +1106,18 @@ const SettingsTab = () => {
                   Define additional fields to collect from the user.
                 </p>
 
-                {fields.map((field, index) => (
+                {initialLoading ? (
+                  <div className="rounded-md border bg-white p-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="space-y-1.5">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-9 w-full rounded-md" />
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {!initialLoading && fields.map((field, index) => (
                   <div
                     key={field.id}
                     className="relative grid grid-cols-1 gap-4 rounded-md border bg-white p-4 md:grid-cols-2 lg:grid-cols-3"
@@ -1238,11 +1274,15 @@ const SettingsTab = () => {
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={!isEnabled}
-                    />
+                    {initialLoading ? (
+                      <Skeleton className="h-6 w-10 rounded-full" />
+                    ) : (
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!isEnabled}
+                      />
+                    )}
                   </FormControl>
                 </FormItem>
               )}
@@ -1288,11 +1328,15 @@ const SettingsTab = () => {
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={!isEnabled}
-                    />
+                    {initialLoading ? (
+                      <Skeleton className="h-6 w-10 rounded-full" />
+                    ) : (
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!isEnabled}
+                      />
+                    )}
                   </FormControl>
                 </FormItem>
               )}
@@ -1351,11 +1395,15 @@ const SettingsTab = () => {
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={!isEnabled}
-                    />
+                    {initialLoading ? (
+                      <Skeleton className="h-6 w-10 rounded-full" />
+                    ) : (
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!isEnabled}
+                      />
+                    )}
                   </FormControl>
                 </FormItem>
               )}
