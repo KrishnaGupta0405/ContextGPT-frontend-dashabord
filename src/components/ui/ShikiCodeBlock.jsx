@@ -31,6 +31,29 @@ export function ShikiCodeBlock({ code, lang = "html", className = "" }) {
 
   return (
     <div className={`group relative overflow-hidden rounded-[8px] text-[12.5px] leading-relaxed ${className}`}>
+      <style>{`
+        .shiki-code-scrollable {
+          scrollbar-color: #30363d #0d1117;
+          scrollbar-width: thin;
+        }
+        .shiki-code-scrollable::-webkit-scrollbar {
+          height: 8px;
+          width: 8px;
+        }
+        .shiki-code-scrollable::-webkit-scrollbar-track {
+          background: #0d1117;
+        }
+        .shiki-code-scrollable::-webkit-scrollbar-corner {
+          background: #0d1117;
+        }
+        .shiki-code-scrollable::-webkit-scrollbar-thumb {
+          background: #30363d;
+          border-radius: 4px;
+        }
+        .shiki-code-scrollable::-webkit-scrollbar-thumb:hover {
+          background: #424a52;
+        }
+      `}</style>
       {/* Top bar */}
       <div className="flex items-center justify-between bg-[#1f2428] px-4 py-2 border-b border-white/10">
         <span className="text-[11px] font-medium text-white/40 uppercase tracking-widest select-none">
@@ -52,11 +75,11 @@ export function ShikiCodeBlock({ code, lang = "html", className = "" }) {
       {/* Code area */}
       {html ? (
         <div
-          className="overflow-x-auto [&>pre]:!m-0 [&>pre]:!rounded-none [&>pre]:!rounded-b-[8px] [&>pre]:p-4 [&>pre]:!text-[12.5px] [&>pre]:leading-relaxed"
+          className="shiki-code-scrollable overflow-x-auto bg-[#0d1117] [&>pre]:m-0! [&>pre]:rounded-none! [&>pre]:rounded-b-[8px]! [&>pre]:p-4 [&>pre]:text-[12.5px]! [&>pre]:leading-relaxed [&>pre]:bg-[#0d1117]"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <pre className="overflow-x-auto bg-[#0d1117] p-4 text-[12.5px] leading-relaxed text-slate-400">
+        <pre className="shiki-code-scrollable overflow-x-auto bg-[#0d1117] p-4 text-[12.5px] leading-relaxed text-slate-400">
           {code.trim()}
         </pre>
       )}

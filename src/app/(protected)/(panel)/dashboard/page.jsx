@@ -4,6 +4,7 @@ import React from "react";
 import { PanelNavbar } from "@/components/navbar/PanelNavbar";
 import { RefreshCw, ExternalLink, Copy, CodeXml } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShikiCodeBlock } from "@/components/ui/ShikiCodeBlock";
 import PerformanceFunnel from "./PerformanceFunnel";
 import { useChatbot } from "@/context/ChatbotContext";
 
@@ -97,14 +98,14 @@ export default function Dashboard() {
                 your chatbot.
               </p>
 
-              <div className="relative mt-2 rounded-[8px] bg-[#dce6f6] p-4 font-mono text-[13.5px] text-blue-800">
-                <button className="absolute top-4 right-4 flex items-center gap-1.5 rounded-md border border-blue-200 bg-white px-2.5 py-1 font-sans text-[13px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800">
-                  <Copy className="h-3.5 w-3.5" strokeWidth={2.5} /> Copy
-                </button>
-                <div className="max-w-[85%] leading-relaxed select-all">
-                  {`<script type="module" src="https://contextgpt-widget-testing.vercel.app/loader.js" data-chatbot-id="${chatbotId}"></script>`}
-                </div>
-              </div>
+              <ShikiCodeBlock
+                code={`<script
+  type="module"
+  src="https://contextgpt-widget-testing.vercel.app/loader.js"
+  data-chatbot-id="${chatbotId}">
+</script>`}
+                lang="html"
+              />
             </div>
           </div>
         </div>

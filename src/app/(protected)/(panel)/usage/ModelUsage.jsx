@@ -259,7 +259,7 @@ export function ModelUsage({ chatbotId } = {}) {
     try {
       const res = await api.patch(
         `/chatbots/account/${accountId}/chatbot/${chatbotId}/settings`,
-        { llmModel: newModelId }
+        { llmModelId: newModelId }
       );
 
       if (res?.data?.success) {

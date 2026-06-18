@@ -33,6 +33,10 @@ import {
   PieChart,
   Cell,
   Tooltip,
+  Line,
+  LineChart,
+  Area,
+  AreaChart,
 } from "recharts";
 import {
   ChartContainer,
@@ -142,95 +146,6 @@ function MiniLineChart({ data, rangeLabel }) {
   );
 }
 
-// ── Tiny donut chart ──────────────────────────────────────────────────────────
-const STATUS_COLORS = {
-  completed: "#22c55e",
-  processing: "#f59e0b",
-  failed: "#ef4444",
-  pending: "#94a3b8",
-};
-
-function DonutChart({ data }) {
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex h-[140px] items-center justify-center text-[13px] text-slate-400">
-        No ingestion data
-      </div>
-    );
-  }
-
-  const total = data.reduce((s, d) => s + d.count, 0);
-  if (total === 0) {
-    return (
-      <div className="flex h-[140px] items-center justify-center text-[13px] text-slate-400">
-        No files yet
-      </div>
-    );
-  }
-
-  const R = 40;
-  const CX = 55;
-  const CY = 55;
-  const HOLE = 22;
-
-  let cumAngle = -Math.PI / 2;
-  const slices = data.map((d) => {
-    const angle = (d.count / total) * 2 * Math.PI;
-    const start = cumAngle;
-    cumAngle += angle;
-    return { ...d, start, end: cumAngle, angle };
-  });
-
-  const sector = (s) => {
-    const large = s.end - s.start > Math.PI ? 1 : 0;
-    const ox1 = CX + R * Math.cos(s.start);
-    const oy1 = CY + R * Math.sin(s.start);
-    const ox2 = CX + R * Math.cos(s.end);
-    const oy2 = CY + R * Math.sin(s.end);
-    const ix1 = CX + HOLE * Math.cos(s.end);
-    const iy1 = CY + HOLE * Math.sin(s.end);
-    const ix2 = CX + HOLE * Math.cos(s.start);
-    const iy2 = CY + HOLE * Math.sin(s.start);
-    return `M ${ox1} ${oy1} A ${R} ${R} 0 ${large} 1 ${ox2} ${oy2} L ${ix1} ${iy1} A ${HOLE} ${HOLE} 0 ${large} 0 ${ix2} ${iy2} Z`;
-  };
-
-  return (
-    <div className="flex items-center gap-5">
-      <svg viewBox="0 0 110 110" style={{ width: 110, height: 110, flexShrink: 0 }}>
-        {slices.map((s, i) => (
-          <path
-            key={i}
-            d={sector(s)}
-            fill={STATUS_COLORS[s.status] ?? "#cbd5e1"}
-          />
-        ))}
-        <text
-          x={CX}
-          y={CY + 4}
-          textAnchor="middle"
-          fontSize={13}
-          fontWeight="bold"
-          fill="#1e293b"
-        >
-          {total}
-        </text>
-      </svg>
-      <div className="flex flex-col gap-1.5">
-        {slices.map((s, i) => (
-          <div key={i} className="flex items-center gap-2 text-[12px] text-slate-700">
-            <span
-              className="inline-block h-2.5 w-2.5 rounded-full"
-              style={{ background: STATUS_COLORS[s.status] ?? "#cbd5e1" }}
-            />
-            <span className="capitalize">{s.status}</span>
-            <span className="font-semibold text-slate-900">{s.count}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ── Skeleton card ─────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
@@ -297,14 +212,21 @@ function MessagesTrendChart({ data, rangeLabel, loading }) {
     );
   }
 
-  const formatted = data.map((d) => ({ ...d, date: d.date?.slice(5) }));
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const formatted = data.map((d) => {
+    if (!d.date) return d;
+    const [, month, day] = d.date.split("-");
+    const monthIdx = parseInt(month) - 1;
+    const monthName = MONTHS[monthIdx];
+    return { ...d, date: d.date, formattedDate: `${day}-${monthName}` };
+  });
 
   return (
     <ChartContainer config={messagesTrendConfig} className="h-[220px] w-full">
-      <BarChart data={formatted} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+      <AreaChart data={formatted} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
         <CartesianGrid vertical={false} stroke="#f1f5f9" />
         <XAxis
-          dataKey="date"
+          dataKey="formattedDate"
           tickLine={false}
           axisLine={false}
           tick={{ fontSize: 10, fill: "#94a3b8" }}
@@ -315,14 +237,122 @@ function MessagesTrendChart({ data, rangeLabel, loading }) {
           axisLine={false}
           tick={{ fontSize: 10, fill: "#94a3b8" }}
           allowDecimals={false}
+          label={{ value: "Number of Messages --->", angle: -90, position: "insideLeft", style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 10 } }}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="totalMessages" fill="var(--color-totalMessages)" radius={[3, 3, 0, 0]} maxBarSize={32} />
-        <Bar dataKey="positiveCount" fill="var(--color-positiveCount)" radius={[3, 3, 0, 0]} maxBarSize={32} />
-        <Bar dataKey="negativeCount" fill="var(--color-negativeCount)" radius={[3, 3, 0, 0]} maxBarSize={32} />
-      </BarChart>
+        <Area type="monotone" dataKey="totalMessages" stroke="var(--color-totalMessages)" fill="var(--color-totalMessages)" fillOpacity={0.2} />
+        <Area type="monotone" dataKey="positiveCount" stroke="var(--color-positiveCount)" fill="var(--color-positiveCount)" fillOpacity={0.2} />
+        <Area type="monotone" dataKey="negativeCount" stroke="var(--color-negativeCount)" fill="var(--color-negativeCount)" fillOpacity={0.2} />
+      </AreaChart>
     </ChartContainer>
+  );
+}
+
+// ── Device type breakdown bar chart ───────────────────────────────────────────
+const deviceTypeConfig = {
+  desktop: { label: "Desktop", color: "#2563eb" },
+  mobile: { label: "Mobile", color: "#7c3aed" },
+  tablet: { label: "Tablet", color: "#06b6d4" },
+};
+
+function DeviceTypeChart({ data, loading }) {
+  if (loading) return <Skeleton className="h-[220px] w-full" />;
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[220px] items-center justify-center text-[13px] text-slate-400">
+        No device data available
+      </div>
+    );
+  }
+
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const chartData = (data || []).map((d) => {
+    if (!d.date) return d;
+    const [, month, day] = d.date.split("-");
+    const monthIdx = parseInt(month) - 1;
+    const monthName = MONTHS[monthIdx];
+    return {
+      ...d,
+      date: d.date,
+      formattedDate: `${day}-${monthName}`,
+      desktop: Number(d.desktop || 0),
+      mobile: Number(d.mobile || 0),
+      tablet: Number(d.tablet || 0),
+    };
+  });
+
+  const totalVisitors = chartData.reduce((sum, d) => sum + (d.desktop + d.mobile + d.tablet), 0);
+
+  return (
+    <div>
+      <p className="mb-3 text-[12px] text-slate-500">
+        Total visitors: <span className="font-bold text-slate-700">{totalVisitors}</span>
+      </p>
+      <ChartContainer config={deviceTypeConfig} className="h-[220px] w-full">
+        <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+          <CartesianGrid vertical={false} stroke="#f1f5f9" />
+          <XAxis
+            dataKey="formattedDate"
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 10, fill: "#94a3b8" }}
+            interval="preserveStartEnd"
+          />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#94a3b8" }} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                hideLabel
+                className="w-[200px]"
+                formatter={(value, name, item, index) => (
+                  <>
+                    <div
+                      className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                      style={{
+                        backgroundColor: `var(--color-${name})`,
+                      }}
+                    />
+                    {deviceTypeConfig[name]?.label || name}
+                    <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium text-slate-900 tabular-nums">
+                      {value}
+                    </div>
+                    {index === 2 && (
+                      <div className="mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium text-slate-900">
+                        Total
+                        <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                          {item.payload.desktop + item.payload.mobile + item.payload.tablet}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              />
+            }
+            cursor={false}
+            defaultIndex={0}
+          />
+          <Bar
+            dataKey="desktop"
+            stackId="a"
+            fill="var(--color-desktop)"
+            radius={[0, 0, 4, 4]}
+          />
+          <Bar
+            dataKey="mobile"
+            stackId="a"
+            fill="var(--color-mobile)"
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="tablet"
+            stackId="a"
+            fill="var(--color-tablet)"
+            radius={[4, 4, 0, 0]}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
   );
 }
 
@@ -349,7 +379,7 @@ function CustomCountryTooltip({ active, payload }) {
   const othersCount = cities.slice(3).reduce((s, c) => s + c.count, 0);
 
   return (
-    <div className="border-border/50 bg-background min-w-[160px] rounded-lg border px-3 py-2 text-xs shadow-xl">
+    <div className="min-w-[160px] rounded-lg px-3 py-2 text-xs shadow-xl">
       <p className="mb-1.5 font-semibold text-slate-800">{countryName(item.payload.country)}</p>
       <p className="mb-1 text-slate-500">{item.value} unique visitor{item.value !== 1 ? "s" : ""}</p>
       {topCities.length > 0 && (
@@ -535,7 +565,7 @@ export default function PerformanceFunnel() {
 
   const cards = data?.cards ?? {};
   const trend = data?.charts?.conversationsTrend ?? [];
-  const ingestionStatus = data?.charts?.ingestionStatus ?? [];
+  const deviceTypeBreakdown = data?.charts?.deviceTypeBreakdown ?? [];
   const messagesTrend = data?.charts?.messagesTrend ?? [];
   const visitorCountries = data?.charts?.visitorCountries ?? [];
   const ingestionSources = data?.charts?.ingestionSources ?? [];
@@ -653,52 +683,7 @@ export default function PerformanceFunnel() {
             ))}
       </div>
 
-      {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Conversations trend */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-          <h3 className="mb-3 text-[13px] font-bold text-slate-800">
-            Conversations — Last {activeRange?.label}
-          </h3>
-          {loading ? (
-            <Skeleton className="h-[140px] w-full" />
-          ) : (
-            <MiniLineChart data={trend} rangeLabel={activeRange?.label} />
-          )}
-        </div>
-
-        {/* Ingestion status */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-          <h3 className="mb-3 text-[13px] font-bold text-slate-800">
-            Knowledge Base Status
-          </h3>
-          {loading ? (
-            <div className="flex items-center gap-5">
-              <Skeleton className="h-[110px] w-[110px] rounded-full" />
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-3.5 w-24" />
-                <Skeleton className="h-3.5 w-20" />
-                <Skeleton className="h-3.5 w-16" />
-              </div>
-            </div>
-          ) : (
-            <DonutChart data={ingestionStatus} />
-          )}
-        </div>
-      </div>
-
-      {/* ── Messages trend bar chart (full width) ── */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        <h3 className="mb-1 text-[13px] font-bold text-slate-800">
-          Messages Trend — Last {activeRange?.label}
-        </h3>
-        <p className="mb-4 text-[11.5px] text-slate-400">
-          Daily user messages with positive and negative feedback counts
-        </p>
-        <MessagesTrendChart data={messagesTrend} rangeLabel={activeRange?.label} loading={loading} />
-      </div>
-
-      {/* ── Charts row 2: visitor countries + ingestion sources ── */}
+{/* ── Charts row 2: visitor countries + ingestion sources ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
           <h3 className="mb-1 text-[13px] font-bold text-slate-800">
@@ -720,6 +705,50 @@ export default function PerformanceFunnel() {
           <IngestionSourcesChart data={ingestionSources} loading={loading} />
         </div>
       </div>
+        
+      {/* ── Messages trend bar chart (full width) ── */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <h3 className="mb-1 text-[13px] font-bold text-slate-800">
+          Messages Trend — Last {activeRange?.label}
+        </h3>
+        <p className="mb-4 text-[11.5px] text-slate-400">
+          Daily user messages with positive and negative feedback counts
+        </p>
+        <MessagesTrendChart data={messagesTrend} rangeLabel={activeRange?.label} loading={loading} />
+        {/* {console.log("MessagesTrendChart config-> ", messagesTrendConfig)} */}
+      </div> 
+
+
+      {/* ── Charts row ── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Conversations trend */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <h3 className="mb-3 text-[13px] font-bold text-slate-800">
+            Conversations — Last {activeRange?.label}
+          </h3>
+          {loading ? (
+            <Skeleton className="h-[140px] w-full" />
+          ) : (
+            <MiniLineChart data={trend} rangeLabel={activeRange?.label} />
+          )}
+        </div>
+
+        {/* Device type breakdown */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <h3 className="mb-1 text-[13px] font-bold text-slate-800">
+            Visitors by Device
+          </h3>
+          <p className="mb-4 text-[11.5px] text-slate-400">
+            Device type breakdown for the selected period
+          </p>
+          {loading ? (
+            <Skeleton className="h-[220px] w-full" />
+          ) : (
+            <DeviceTypeChart data={deviceTypeBreakdown} loading={loading} />
+          )}
+        </div>
+      </div>
+      
     </div>
   );
 }

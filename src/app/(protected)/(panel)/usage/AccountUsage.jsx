@@ -84,7 +84,7 @@ export function AccountUsage() {
   const [error, setError] = useState(null);
 
   const fetchUsage = async () => {
-    try {
+    try { 
       setLoading(true);
       setError(null);
       const res = await api.get("/usage");
@@ -218,11 +218,11 @@ export function AccountUsage() {
             value: u?.teamMembersAdded ?? 0,
             icon: Users,
           },
-          {
-            label: "Total Tokens",
-            value: (u?.totalTokens ?? 0).toLocaleString(),
-            icon: Bot,
-          },
+        //   {
+        //     label: "Total Tokens",
+        //     value: (u?.totalTokens ?? 0).toLocaleString(),
+        //     icon: Bot,
+        //   },
         ].map(({ label, value, icon: Icon }) => (
           <div
             key={label}

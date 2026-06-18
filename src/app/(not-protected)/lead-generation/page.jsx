@@ -87,7 +87,7 @@ export default function LeadGeneration() {
     <>
     <div className="sm:px-20 lg:px-30">
       {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden px-4 pt-5 pb-20 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden px-4 pt-5 mt-15 pb-20 sm:px-6 lg:px-8">
         <div className="absolute inset-0 -z-10" />
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-4">

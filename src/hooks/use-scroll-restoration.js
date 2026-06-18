@@ -16,12 +16,21 @@ export function useScrollRestoration() {
     if (savedPosition) {
       const targetY = parseInt(savedPosition, 10);
 
-      // 2. High-performance "Sleek" Animation
-      // Using a Quintic Out curve [0.23, 1, 0.32, 1] for a premium feel
+            speed
+        // ^
+        // |
+        // |           /\
+        // |          /  \
+        // |         /    \
+        // |        /      \
+        // |_______/        \_______
+        // +------------------------>
+        //          progress
       const controls = animate(window.scrollY, targetY, {
         type: "tween",
-        ease: [0.23, 1, 0.32, 1],
-        duration: 0.8,
+        ease: [0.83, 0, 0.17, 1], // easeInOutQuint
+        duration: 1.6,
+        delay: 0.2,
         onUpdate: (latest) => window.scrollTo(0, latest),
       });
 

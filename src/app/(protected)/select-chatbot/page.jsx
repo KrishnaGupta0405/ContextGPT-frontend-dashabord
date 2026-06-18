@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, MessageSquare, Loader2, RefreshCw } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -183,10 +184,13 @@ export default function SelectChatbotPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-slate-50">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        <p className="text-muted-foreground font-medium">
-          Fetching your chatbots...
+      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-slate-50">
+        <Spinner className="size-10 text-blue-600" />
+        <p className="text-[16px] font-semibold text-slate-800">
+          Hang tight — your dashboard is warming up! 🚀
+        </p>
+        <p className="text-[13.5px] text-slate-500">
+          Fetching your chatbots, just a moment...
         </p>
       </div>
     );
