@@ -7,6 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Bot,
   MessageSquare,
   FileText,
@@ -78,16 +85,40 @@ function StatCard({ icon: Icon, label, used, limit, percentage, iconClass }) {
   );
 }
 
+function formatPeriodLabel(p) {
+  try {
+    const start = format(new Date(p.periodStart), "MMM yyyy");
+    const end = format(new Date(p.periodEnd), "MMM yyyy");
+    const label = start === end ? start : `${start} – ${end}`;
+    return `${label} · ${p.subscriptionStatus ?? "unknown"}`;
+  } catch {
+    return p.subscriptionId;
+  }
+}
+
 export function AccountUsage() {
   const [usage, setUsage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [periods, setPeriods] = useState([]);
+  const [selectedTrackingId, setSelectedTrackingId] = useState(null);
 
-  const fetchUsage = async () => {
-    try { 
+  useEffect(() => {
+    api.get("/usage/subscription-periods").then((res) => {
+      if (res?.data?.success) {
+        const list = res.data.data.periods ?? [];
+        setPeriods(list);
+        if (list.length) setSelectedTrackingId(list[0].id);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const fetchUsage = async (trackingId) => {
+    try {
       setLoading(true);
       setError(null);
-      const res = await api.get("/usage");
+      const params = trackingId ? { trackingId } : {};
+      const res = await api.get("/usage", { params });
       if (res?.data?.success) {
         setUsage(res.data.data);
       }
@@ -100,8 +131,8 @@ export function AccountUsage() {
   };
 
   useEffect(() => {
-    fetchUsage();
-  }, []);
+    fetchUsage(selectedTrackingId);
+  }, [selectedTrackingId]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
@@ -155,16 +186,32 @@ export function AccountUsage() {
             </p>
           )}
         </div>
-        <Badge
-          variant="outline"
-          className={
-            u?.subscriptionStatus === "active"
-              ? "border-green-300 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-              : "border-yellow-300 bg-yellow-50 text-yellow-700"
-          }
-        >
-          {u?.subscriptionStatus ?? "Unknown"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {periods.length > 1 && (
+            <Select value={selectedTrackingId ?? ""} onValueChange={setSelectedTrackingId}>
+              <SelectTrigger className="h-8 text-xs w-56">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                {periods.map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                    {formatPeriodLabel(p)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Badge
+            variant="outline"
+            className={
+              u?.subscriptionStatus === "active"
+                ? "border-green-300 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                : "border-yellow-300 bg-yellow-50 text-yellow-700"
+            }
+          >
+            {u?.subscriptionStatus ?? "Unknown"}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">

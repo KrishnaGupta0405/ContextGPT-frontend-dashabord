@@ -16,7 +16,6 @@ export function useScrollRestoration() {
     if (savedPosition) {
       const targetY = parseInt(savedPosition, 10);
 
-            speed
         // ^
         // |
         // |           /\
