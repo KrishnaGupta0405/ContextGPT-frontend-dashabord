@@ -19,6 +19,7 @@ import {
   Unplug,
   RefreshCw,
   FolderOpen,
+  FolderInput,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useChatbot } from "@/context/ChatbotContext";
@@ -26,6 +27,7 @@ import api from "@/lib/axios";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
+import { FolderScanModal } from "./FolderScanModal";
 
 const ALLOWED_EXTENSIONS = ".pdf, .txt, .doc, .docx, .csv, .xls, .xlsx, .ppt, .pptx, .md, .html, .htm, .rtf";
 
@@ -48,6 +50,7 @@ export function AddSharePointFiles({ onBack, onAdd }) {
   const [importing, setImporting] = useState(false);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [scanningFolder, setScanningFolder] = useState(null);
 
   // Navigation: null = sites list, { siteId, siteName } = drive list within site
   const [currentSite, setCurrentSite] = useState(null);
@@ -163,6 +166,28 @@ export function AddSharePointFiles({ onBack, onAdd }) {
     setFiles([]);
     setSelectedFileIds(new Set());
     setNextPageToken(null);
+  };
+
+  const handleFolderScanConfirm = async (scannedFiles) => {
+    setScanningFolder(null);
+    if (!chatbotId) { toast.error("No chatbot selected"); return; }
+    if (scannedFiles.length === 0) { toast.error("No files selected"); return; }
+    try {
+      setImporting(true);
+      const res = await api.post("/oauth-connect/sharepoint/import", {
+        fileIds: scannedFiles.map((f) => f.id),
+        chatbotId,
+        siteId: currentSite.siteId,
+        driveId: currentDrive.driveId,
+      });
+      const data = res.data.data;
+      if (data.imported > 0) { toast.success(res.data.message || `Imported ${data.imported} file(s)`); if (onAdd) onAdd(); }
+      if (data.failed > 0) toast.error(`${data.failed} file(s) failed to import`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to import files");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const openFolder = (folder) => {
@@ -439,7 +464,14 @@ export function AddSharePointFiles({ onBack, onAdd }) {
                         </div>
                         {currentDrive && !file.isSite && !file.isDrive && (
                           <div className="w-[80px] shrink-0 text-right text-sm text-slate-500">
-                            {file.isFolder ? "—" : formatFileSize(file.size)}
+                            {file.isFolder ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setScanningFolder(file); }}
+                                className="flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                              >
+                                <FolderInput className="h-3 w-3" /> Import
+                              </button>
+                            ) : formatFileSize(file.size)}
                           </div>
                         )}
                       </div>
@@ -460,6 +492,16 @@ export function AddSharePointFiles({ onBack, onAdd }) {
           </>
         )}
       </div>
+
+      {scanningFolder && currentSite && currentDrive && (
+        <FolderScanModal
+          folder={scanningFolder}
+          provider={{ type: "sharepoint", endpoint: "/oauth-connect/sharepoint/files", idKey: "folderId" }}
+          extraCtx={{ siteId: currentSite.siteId, driveId: currentDrive.driveId }}
+          onClose={() => setScanningFolder(null)}
+          onConfirm={handleFolderScanConfirm}
+        />
+      )}
 
       {/* Footer */}
       {status.connected && currentSite && currentDrive && (

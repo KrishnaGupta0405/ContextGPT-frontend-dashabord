@@ -56,7 +56,7 @@ export default function RealScenariosSection() {
           See it in real scenarios
         </h2>
         <p className="text-gray-500 text-lg tracking-tight">
-          Real scenarios showing how SiteGPT turns website visitors into booked appointments—24/7
+          Real scenarios showing how ContextGPT turns website visitors into booked appointments—24/7
         </p>
       </div>
 

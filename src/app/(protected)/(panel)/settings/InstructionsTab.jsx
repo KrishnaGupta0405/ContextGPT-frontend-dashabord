@@ -207,7 +207,7 @@ const InstructionsTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/instructions`,
+        `/chatbots/chatbot/${chatbotId}/instructions`,
       );
 
       if (response.data.success) {
@@ -286,12 +286,12 @@ const InstructionsTab = () => {
       let response;
       if (!editingInstructionId) {
         response = await api.post(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/instructions`,
+          `/chatbots/chatbot/${chatbotId}/instructions`,
           payload,
         );
       } else {
         response = await api.patch(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/instructions/${editingInstructionId}`,
+          `/chatbots/chatbot/${chatbotId}/instructions/${editingInstructionId}`,
           payload,
         );
       }
@@ -325,7 +325,7 @@ const InstructionsTab = () => {
       const account = JSON.parse(localStorage.getItem("account") || "{}");
 
       const response = await api.delete(
-        `/chatbots/account/${account.id}/chatbot/${chatbotId}/instructions?instructionId=${instruction.id}`,
+        `/chatbots/chatbot/${chatbotId}/instructions?instructionId=${instruction.id}`,
       );
 
       if (response.data.success) {
@@ -379,7 +379,7 @@ const InstructionsTab = () => {
       }
 
       const response = await api.post(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/instructions/select-instruction`,
+        `/chatbots/chatbot/${chatbotId}/instructions/select-instruction`,
         payload,
       );
 

@@ -44,7 +44,9 @@ import {
   Star,
   Archive,
   Trash2,
+  Download,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import LeadDetailsSheet from "./LeadDetailsSheet";
@@ -71,6 +73,7 @@ const CurrentLeadsTab = () => {
     hasMore: false,
   });
   const [isFetching, setIsFetching] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // Handle cooldown timer
   useEffect(() => {
@@ -266,6 +269,92 @@ const CurrentLeadsTab = () => {
     }
   };
 
+  const allSelected = leads.length > 0 && selectedIds.length === leads.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < leads.length;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(leads.map((l) => l.id));
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const handleDownloadSelected = () => {
+    const selected = leads.filter((l) => selectedIds.includes(l.id));
+    const csv = [
+      ["Name", "Email", "Sessions", "Views", "Messages", "First Seen", "Last Seen", "Important", "Archived"],
+      ...selected.map((l) => [
+        l.name || "Guest User",
+        l.email || "",
+        l.totalSessions || 0,
+        l.totalPageViews || 0,
+        l.totalMessages || 0,
+        l.firstSeenAt || l.createdAt || "",
+        l.lastSeenAt || l.updatedAt || "",
+        l.important ? "Yes" : "No",
+        l.achieved ? "Yes" : "No",
+      ]),
+    ]
+      .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `leads-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBulkUpdate = async (updateData) => {
+    try {
+      const chatbotId = selectedChatbot.id || selectedChatbot.chatbotId;
+      await Promise.all(
+        selectedIds.map((id) =>
+          api.patch(`/leads/${chatbotId}/visitor/${id}`, updateData),
+        ),
+      );
+      toast.success("Leads updated successfully");
+      setLeads((prev) =>
+        prev.map((l) =>
+          selectedIds.includes(l.id) ? { ...l, ...updateData } : l,
+        ),
+      );
+      setSelectedIds([]);
+    } catch {
+      toast.error("Failed to update leads");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Delete ${selectedIds.length} selected lead(s)?`)) return;
+    try {
+      const chatbotId = selectedChatbot.id || selectedChatbot.chatbotId;
+      await Promise.all(
+        selectedIds.map((id) =>
+          api.delete(`/leads/${chatbotId}/visitor/${id}`),
+        ),
+      );
+      toast.success("Leads deleted successfully");
+      setLeads((prev) => prev.filter((l) => !selectedIds.includes(l.id)));
+      setPagination((prev) => ({
+        ...prev,
+        totalVisitors: Math.max(0, prev.totalVisitors - selectedIds.length),
+      }));
+      setSelectedIds([]);
+    } catch {
+      toast.error("Failed to delete leads");
+    }
+  };
+
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.pages) {
       setPagination((prev) => ({ ...prev, page: newPage }));
@@ -446,7 +535,12 @@ const CurrentLeadsTab = () => {
             <TableHeader className="bg-slate-50">
               <TableRow>
                 <TableHead className="w-[50px] pl-4">
-                  <Checkbox className="translate-y-[2px]" />
+                  <Checkbox
+                    className="translate-y-[2px] cursor-pointer"
+                    checked={allSelected}
+                    data-state={someSelected ? "indeterminate" : allSelected ? "checked" : "unchecked"}
+                    onCheckedChange={toggleSelectAll}
+                  />
                 </TableHead>
                 <TableHead className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                   NAME
@@ -517,7 +611,11 @@ const CurrentLeadsTab = () => {
                       className={`group transition-all hover:bg-slate-50/50 ${isFetching ? "pointer-events-none opacity-50" : ""}`}
                     >
                       <TableCell className="pl-4">
-                        <Checkbox className="translate-y-[2px]" />
+                        <Checkbox
+                          className="translate-y-[2px] cursor-pointer"
+                          checked={selectedIds.includes(lead.id)}
+                          onCheckedChange={() => toggleSelectOne(lead.id)}
+                        />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -723,6 +821,93 @@ const CurrentLeadsTab = () => {
             </Button>
           </div>
         </div>
+
+        {/* Bulk Selection Bar */}
+        {selectedIds.length > 0 && (
+          <div className="animate-in slide-in-from-bottom-2 fade-in fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border bg-white p-2 shadow-lg duration-300">
+            <div className="mr-2 flex items-center gap-2 border-r px-2 pr-4">
+              <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">
+                {selectedIds.length}
+              </span>
+              <span className="hidden text-sm font-medium sm:inline-block">selected</span>
+            </div>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadSelected}
+                  className="h-8 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                >
+                  <Download className="mr-1.5 h-4 w-4" />
+                  Download
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download selected as CSV</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleBulkUpdate({ important: true })}
+                  className="h-8 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
+                >
+                  <Star className="mr-1.5 h-4 w-4" />
+                  Mark Important
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Mark selected as important</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleBulkUpdate({ achieved: true })}
+                  className="h-8 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600"
+                >
+                  <Archive className="mr-1.5 h-4 w-4" />
+                  Archive
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Archive selected leads</TooltipContent>
+            </Tooltip>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  className="h-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="mr-1.5 h-4 w-4" />
+                  Delete
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete selected leads</TooltipContent>
+            </Tooltip>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+              className="ml-1 h-8 text-slate-400 hover:text-slate-600"
+            >
+              Clear
+            </Button>
+          </div>
+        )}
 
         {/* Visitor Details Sheet */}
         <LeadDetailsSheet

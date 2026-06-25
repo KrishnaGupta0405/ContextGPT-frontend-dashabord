@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 import { Bell, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ const SECTIONS = [
 ];
 
 export const NotificationPreferences = () => {
+  const { account } = useAuth();
   const [notifPrefs, setNotifPrefs] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -87,7 +89,7 @@ export const NotificationPreferences = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const response = await api.patch("/users/notification-preferences", notifPrefs);
+      const response = await api.patch("/users/notification-preferences", { ...notifPrefs, accountId: account?.id });
       if (response.data.success) {
         setNotifPrefs(response.data.data);
         toast.success("Notification preferences saved!");

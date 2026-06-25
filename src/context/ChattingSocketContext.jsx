@@ -38,12 +38,27 @@ export function ChattingSocketProvider({ children }) {
     socketRef.current = socket;
     socket.connect();
 
-    socket.on("connect", () => setIsConnected(true));
-    socket.on("disconnect", () => setIsConnected(false));
+    // Seed state immediately in case the socket was already connected
+    // before this provider (re)mounted — the "connect" event won't re-fire
+    // for an already-open socket, so without this isConnected stays false.
+    if (socket.connected) setIsConnected(true);
+
+    socket.on("connect", () => {
+      console.log("[ChattingSocket] connected, id=", socket.id);
+      setIsConnected(true);
+    });
+    socket.on("disconnect", (reason) => {
+      console.log("[ChattingSocket] disconnected, reason=", reason);
+      setIsConnected(false);
+    });
+    socket.on("connect_error", (err) => {
+      console.error("[ChattingSocket] connect_error:", err.message);
+    });
 
     return () => {
       socket.off("connect");
       socket.off("disconnect");
+      socket.off("connect_error");
       socket.disconnect();
     };
   }, []);

@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Lock,
   Globe,
+  FolderInput,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useChatbot } from "@/context/ChatbotContext";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
+import { FolderScanModal } from "./FolderScanModal";
 
 const ALLOWED_EXTENSIONS = ".pdf, .txt, .doc, .docx, .csv, .xls, .xlsx, .ppt, .pptx, .md, .html, .htm, .rtf";
 
@@ -46,6 +48,7 @@ export function AddGithubFiles({ onBack, onAdd }) {
   const [folderStack, setFolderStack] = useState([]); // path segments within a repo
   const [nextPage, setNextPage] = useState(null);
   const [isRepoList, setIsRepoList] = useState(true);
+  const [scanningFolder, setScanningFolder] = useState(null);
 
   const currentPath = folderStack.join("/");
 
@@ -155,6 +158,28 @@ export function AddGithubFiles({ onBack, onAdd }) {
 
   const handleFolderClick = (folder) => {
     setFolderStack((prev) => [...prev, folder.name]);
+  };
+
+  const handleFolderScanConfirm = async (scannedFiles) => {
+    setScanningFolder(null);
+    if (!chatbotId) { toast.error("No chatbot selected"); return; }
+    if (scannedFiles.length === 0) { toast.error("No files selected"); return; }
+    try {
+      setImporting(true);
+      const filesPayload = scannedFiles.map((f) => ({ path: f.path, downloadUrl: f.downloadUrl }));
+      const res = await api.post("/oauth-connect/github/import", {
+        files: filesPayload,
+        repo: selectedRepo,
+        chatbotId,
+      });
+      const data = res.data.data;
+      if (data.imported > 0) { toast.success(res.data.message || `Imported ${data.imported} file(s)`); if (onAdd) onAdd(); }
+      if (data.failed > 0) toast.error(`${data.failed} file(s) failed to import`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to import files");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleBreadcrumbToRepos = () => {
@@ -391,7 +416,15 @@ export function AddGithubFiles({ onBack, onAdd }) {
                           </Tooltip>
                         </TooltipProvider>
                       )}
-                      {file.isFolder && <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />}
+                      {file.isFolder && !isRepoList && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setScanningFolder({ ...file, path: file.path || file.name }); }}
+                          className="flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                        >
+                          <FolderInput className="h-3 w-3" /> Import
+                        </button>
+                      )}
+                      {file.isFolder && isRepoList && <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />}
                     </div>
                   ))}
 
@@ -410,6 +443,16 @@ export function AddGithubFiles({ onBack, onAdd }) {
           </>
         )}
       </div>
+
+      {scanningFolder && selectedRepo && (
+        <FolderScanModal
+          folder={scanningFolder}
+          provider={{ type: "github", endpoint: "/oauth-connect/github/files" }}
+          extraCtx={{ repo: selectedRepo }}
+          onClose={() => setScanningFolder(null)}
+          onConfirm={handleFolderScanConfirm}
+        />
+      )}
 
       {status.connected && (
         <div className="border-t border-slate-200 bg-slate-50/50 px-6 py-4">

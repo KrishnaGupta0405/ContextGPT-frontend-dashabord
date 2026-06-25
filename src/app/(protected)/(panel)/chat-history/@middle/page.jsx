@@ -352,7 +352,7 @@ const ChatHistoryMiddle = () => {
       if (sessionStorage.getItem(cacheKey)) return; // already cached
       try {
         const response = await api.get(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/appearance`,
+          `/chatbots/chatbot/${selectedChatbot.id}/appearance`,
         );
         if (response.data?.success) {
           const { botIconSrc, userIconSrc, agentIconSrc } = response.data.data;

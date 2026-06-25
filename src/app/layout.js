@@ -16,33 +16,34 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   metadataBase: new URL("https://contextgpt.com"),
+  manifest: "/manifest.json",
   title: {
     default: "ContextGPT | AI Chatbot for Your Website",
     template: "%s | ContextGPT",
   },
-  description: "Turn your website into an AI-powered chatbot in minutes. Train on your content, capture leads, and answer questions 24/7 — no coding required.",
+  description: "Turn your website into an AI chatbot in minutes. Train on your content, capture leads, and answer questions 24/7.",
   keywords: ["AI chatbot", "website chatbot", "customer support AI", "lead generation chatbot", "no-code chatbot"],
   authors: [{ name: "ContextGPT", url: "https://contextgpt.com" }],
   creator: "ContextGPT",
   publisher: "ContextGPT",
   icons: {
-    icon: "/icons/Contextgpt_icon_website_topbar.png",
-    shortcut: "/icons/Contextgpt_icon_website_topbar.png",
-    apple: "/icons/Contextgpt_icon_website_topbar.png",
+    icon: "/icons/Contextgpt_icon_website_topbar.avif",
+    shortcut: "/icons/Contextgpt_icon_website_topbar.avif",
+    apple: "/icons/Contextgpt_icon_website_topbar.avif",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "ContextGPT",
     title: "ContextGPT | AI Chatbot for Your Website",
-    description: "Turn your website into an AI-powered chatbot in minutes. Train on your content, capture leads, and answer questions 24/7 — no coding required.",
-    images: [{ url: "/icons/Contextgpt_icon.svg", width: 1200, height: 630, alt: "ContextGPT" }],
+    description: "Turn your website into an AI chatbot in minutes. Train on your content, capture leads, and answer questions 24/7.",
+    images: [{ url: "/og-img.png", width: 1200, height: 630, alt: "ContextGPT" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ContextGPT | AI Chatbot for Your Website",
-    description: "Turn your website into an AI-powered chatbot in minutes. Train on your content, capture leads, and answer questions 24/7 — no coding required.",
-    images: ["/icons/Contextgpt_icon.svg"],
+    description: "Turn your website into an AI chatbot in minutes. Train on your content, capture leads, and answer questions 24/7.",
+    images: ["/og-img.png"],
   },
   robots: {
     index: true,
@@ -53,19 +54,44 @@ export const metadata = {
 
 import { AuthProvider } from "@/context/AuthContext";
 import SessionClearer from "@/components/SessionClearer";
+import Script from "next/script";
 
-const organizationSchema = {
+const siteSchema = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "ContextGPT",
-  url: "https://contextgpt.com",
-  logo: "https://contextgpt.com/icons/Contextgpt_icon.svg",
-  sameAs: [],
-  contactPoint: {
-    "@type": "ContactPoint",
-    contactType: "customer support",
-    url: "https://contextgpt.com/contact",
-  },
+  "@graph": [
+    {
+      "@type": "Organization",
+      name: "ContextGPT",
+      url: "https://contextgpt.com",
+      logo: "https://contextgpt.com/icons/Contextgpt_icon.svg",
+      sameAs: [],
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        url: "https://contextgpt.com/contact",
+      },
+    },
+    {
+      "@type": "WebSite",
+      name: "ContextGPT",
+      url: "https://contextgpt.com",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://contextgpt.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "ContextGPT",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      description:
+        "Turn your website into an AI chatbot in minutes. Train on your content, capture leads, and answer questions 24/7.",
+      url: "https://contextgpt.com",
+    },
+  ],
 };
 
 export default function RootLayout({ children }) {
@@ -76,7 +102,12 @@ export default function RootLayout({ children }) {
       >
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }}
+        />
+        <Script
+          src="https://cdn.datafast.io/v1/tracker.js"
+          data-site-id={process.env.NEXT_PUBLIC_DATAFAST_SITE_ID}
+          strategy="afterInteractive"
         />
         <SessionClearer />
         <AuthProvider>

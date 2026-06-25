@@ -94,7 +94,7 @@ const HumanSettingsTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/human-support-settings`,
+        `/chatbots/chatbot/${chatbotId}/human-support-settings`,
       );
 
       if (response.data.success && response.data.data) {
@@ -166,12 +166,12 @@ const HumanSettingsTab = () => {
       let response;
       if (isNewSettings) {
         response = await api.post(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/human-support-settings`,
+          `/chatbots/chatbot/${chatbotId}/human-support-settings`,
           payload,
         );
       } else {
         response = await api.patch(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/human-support-settings`,
+          `/chatbots/chatbot/${chatbotId}/human-support-settings`,
           payload,
         );
       }

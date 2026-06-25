@@ -14,7 +14,7 @@ import {IntegrationHero} from "@/app/(not-protected)/integration/page";
 export default function Landing() {
   return (
     <div className="min-h-screen">
-      <div className="px-[1rem] sm:px-26 lg:px-36">
+      <div className="px-[1rem] sm:px-26 lg:px-36 mt-8">
         <HeroSection />
       </div>
       <div className="bg-gray-50 px-[1rem] sm:px-26 lg:px-36">

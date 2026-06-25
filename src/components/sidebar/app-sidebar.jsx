@@ -175,6 +175,12 @@ export function NavUser({ user }) {
                   API Keys
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href="https://contextgpt0405.featurebase.app" target="_blank" rel="noopener noreferrer">
+                  <MessageSquare className="mr-2 size-4" />
+                  Feedback
+                </a>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>

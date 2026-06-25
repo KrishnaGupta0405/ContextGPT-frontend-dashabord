@@ -114,7 +114,7 @@ const OTHER_TOOLS = [
     label: "Email Signature Generator",
     href: "/tools/email-signature-generator",
   },
-  // { label: "SourceSync.ai", href: "https://sourcesync.ai", external: true },
+  // { label: "SourceSync.in", href: "https://sourcesync.in", external: true },
 ];
 
 function FooterColumn({ heading, href, links }) {
@@ -207,13 +207,13 @@ export default function Footer() {
 
               {/* Email */}
               {/* <a
-              href="mailto:KRISHNA@contextGPT.ai"
+              href="mailto:KRISHNA@contextGPT.in"
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              krishna@contextGPT.ai
+              krishna@contextGPT.in
             </a> */}
             </div>
 

@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, Loader2, Crop as CropIcon } from "lucide-react";
+import { Upload, Loader2, Crop as CropIcon, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -81,6 +81,7 @@ export function ProfileAvatar({
   const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState(null);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [copiedAccountId, setCopiedAccountId] = useState(false);
 
   const imgRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -93,6 +94,15 @@ export function ProfileAvatar({
       .map((n) => n[0])
       .join("")
       .toUpperCase();
+  };
+
+  const handleCopyAccountId = async () => {
+    if (account?.id) {
+      await navigator.clipboard.writeText(account.id);
+      setCopiedAccountId(true);
+      setTimeout(() => setCopiedAccountId(false), 2000);
+      toast.success("Account ID copied");
+    }
   };
 
   const handleAvatarClick = () => {
@@ -241,6 +251,24 @@ export function ProfileAvatar({
               <p className="text-muted-foreground text-sm break-all">
                 {profileData?.email || user?.email}
               </p>
+              {account?.id && (
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-muted-foreground/70 text-xs break-all">
+                    Account: {account.id}
+                  </p>
+                  <button
+                    onClick={handleCopyAccountId}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-primary/10 transition-colors"
+                    title="Copy account ID"
+                  >
+                    {copiedAccountId ? (
+                      <Check className="w-3 h-3 text-green-600" />
+                    ) : (
+                      <Copy className="w-3 h-3 text-muted-foreground hover:text-primary" />
+                    )}
+                  </button>
+                </div>
+              )}
               <div className="bg-primary/10 text-primary mt-4 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                 {account?.role?.replace("_", " ") || "USER"}
               </div>

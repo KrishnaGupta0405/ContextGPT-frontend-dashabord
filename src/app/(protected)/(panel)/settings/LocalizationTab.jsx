@@ -485,7 +485,7 @@ const LocalizationTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/localization`,
+        `/chatbots/chatbot/${chatbotId}/localization`,
       );
 
       if (response.data.success && response.data.data) {
@@ -529,12 +529,12 @@ const LocalizationTab = () => {
       let response;
       if (isNewRecord) {
         response = await api.patch(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/localization`,
+          `/chatbots/chatbot/${chatbotId}/localization`,
           payload,
         );
       } else {
         response = await api.patch(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/localization`,
+          `/chatbots/chatbot/${chatbotId}/localization`,
           payload,
         );
       }

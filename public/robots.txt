@@ -1,4 +1,4 @@
-# robots.txt for https://contextgpt.com
+# robots.txt for https://contextgpt.in
 # Generated for ContextGPT — AI Chatbot Platform
 
 # -----------------------------------------------
@@ -55,6 +55,8 @@ Disallow: /_next/
 # -----------------------------------------------
 User-agent: GPTBot
 Allow: /
+Allow: /blog
+Allow: /tools
 Disallow: /dashboard
 Disallow: /account
 Disallow: /appearance
@@ -81,6 +83,8 @@ Disallow: /_next/
 
 User-agent: Claude-Web
 Allow: /
+Allow: /blog
+Allow: /tools
 Disallow: /dashboard
 Disallow: /account
 Disallow: /auth/
@@ -89,6 +93,8 @@ Disallow: /_next/
 
 User-agent: anthropic-ai
 Allow: /
+Allow: /blog
+Allow: /tools
 Disallow: /dashboard
 Disallow: /account
 Disallow: /auth/
@@ -97,6 +103,52 @@ Disallow: /_next/
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /blog
+Allow: /tools
+Disallow: /dashboard
+Disallow: /account
+Disallow: /auth/
+Disallow: /api/
+Disallow: /_next/
+
+# Common Crawl — feeds many LLM training datasets
+User-agent: CCBot
+Allow: /
+Allow: /blog
+Allow: /tools
+Disallow: /dashboard
+Disallow: /account
+Disallow: /auth/
+Disallow: /api/
+Disallow: /_next/
+
+# Apple Intelligence
+User-agent: Applebot-Extended
+Allow: /
+Allow: /blog
+Allow: /tools
+Disallow: /dashboard
+Disallow: /account
+Disallow: /auth/
+Disallow: /api/
+Disallow: /_next/
+
+# Facebook link previews and indexing
+User-agent: FacebookBot
+Allow: /
+Allow: /blog
+Allow: /tools
+Disallow: /dashboard
+Disallow: /account
+Disallow: /auth/
+Disallow: /api/
+Disallow: /_next/
+
+# Internet Archive — LLMs frequently cite archived sources
+User-agent: ia_archiver
+Allow: /
+Allow: /blog
+Allow: /tools
 Disallow: /dashboard
 Disallow: /account
 Disallow: /auth/
@@ -106,4 +158,4 @@ Disallow: /_next/
 # -----------------------------------------------
 # Sitemaps
 # -----------------------------------------------
-Sitemap: https://contextgpt.com/sitemap.xml
+Sitemap: https://contextgpt.in/sitemap.xml

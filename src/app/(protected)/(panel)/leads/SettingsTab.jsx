@@ -520,7 +520,7 @@ const SettingsTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/lead-settings`,
+        `/chatbots/chatbot/${chatbotId}/lead-settings`,
       );
 
       if (response.data.success && response.data.data) {
@@ -635,12 +635,12 @@ const SettingsTab = () => {
       let response;
       if (isNewSettings) {
         response = await api.post(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/lead-settings`,
+          `/chatbots/chatbot/${chatbotId}/lead-settings`,
           payload,
         );
       } else {
         response = await api.patch(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/lead-settings`,
+          `/chatbots/chatbot/${chatbotId}/lead-settings`,
           payload,
         );
       }

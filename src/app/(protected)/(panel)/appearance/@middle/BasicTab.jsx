@@ -486,6 +486,7 @@ const BasicTab = () => {
   const [formData, setFormData] = useState({
     // Content
     chatbotName: "",
+    hideTooltip: false,
     tooltip: "",
     welcomeMessage: "",
     inputPlaceholderText: "",
@@ -500,6 +501,7 @@ const BasicTab = () => {
     defaultMode: "light",
     fontSize: 14,
     chatHeight: 100,
+    chatWidth: 440,
     // Chat Launcher
     iconSize: 48,
     iconPosition: "bottom_right",
@@ -525,9 +527,6 @@ const BasicTab = () => {
 
   useEffect(() => {
     if (account?.id && selectedChatbot?.id) {
-      if (selectedChatbot.name) {
-        setFormData((prev) => ({ ...prev, chatbotName: selectedChatbot.name }));
-      }
       fetchAppearance();
     }
   }, [account?.id, selectedChatbot?.id]);
@@ -536,13 +535,15 @@ const BasicTab = () => {
     setIsLoading(true);
     try {
       const response = await api.get(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/appearance`,
+        `/chatbots/chatbot/${selectedChatbot.id}/appearance`,
       );
       if (response.data.success && response.data.data) {
         setHasExistingSettings(true);
         const data = response.data.data;
         setFormData((prev) => ({
           ...prev,
+          chatbotName: data.chatbotName || "",
+          hideTooltip: data.hideTooltip ?? false,
           tooltip: data.tooltip || "",
           welcomeMessage: data.welcomeMessage || "",
           inputPlaceholderText: data.inputPlaceholderText || "",
@@ -553,6 +554,7 @@ const BasicTab = () => {
           linkColor: data.linkColor || "#0000ee",
           fontSize: data.fontSize || 14,
           chatHeight: data.chatHeight || 100,
+          chatWidth: data.chatWidth || 440,
           externalLink: data.externalLink || "",
           iconSize: data.iconSize || 48,
           iconPosition: data.iconPosition || "bottom_right",
@@ -608,7 +610,7 @@ const BasicTab = () => {
     try {
       // fontFamily is temporarily hidden from the UI and excluded from the API payload
       // until CloudFront distribution is set up. Re-enable when ready.
-      const { chatbotName, fontFamily: _fontFamily, ...rest } = formData; // eslint-disable-line no-unused-vars
+      const { fontFamily: _fontFamily, ...rest } = formData; // eslint-disable-line no-unused-vars
       const payload = {
         ...rest,
         // fontFamily: fontFamily ? JSON.stringify(fontFamily) : null,
@@ -617,12 +619,12 @@ const BasicTab = () => {
       let response;
       if (hasExistingSettings) {
         response = await api.patch(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/appearance`,
+          `/chatbots/chatbot/${selectedChatbot.id}/appearance`,
           payload,
         );
       } else {
         response = await api.post(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/appearance`,
+          `/chatbots/chatbot/${selectedChatbot.id}/appearance`,
           payload,
         );
       }
@@ -741,6 +743,10 @@ const BasicTab = () => {
                   <Label className="text-sm font-semibold text-slate-700">Chat Height (%)</Label>
                   <Skeleton className="h-10 w-full" />
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Chat Width (px)</Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
                 <div className="col-span-2 space-y-1.5">
                   <Label className="text-sm font-semibold text-slate-700">Default Color Mode</Label>
                   <Skeleton className="h-10 w-1/2" />
@@ -815,18 +821,28 @@ const BasicTab = () => {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-sm font-semibold text-slate-700">Tooltip</Label>
-                <textarea
-                  value={formData.tooltip}
-                  onChange={(e) => handleInputChange("tooltip", e.target.value)}
-                  placeholder="Hello, how can I assist you today?"
-                  className="min-h-[80px] w-full resize-none rounded-md border border-slate-200 p-3 text-sm shadow-sm focus:ring-1 focus:ring-slate-900 focus:outline-none"
-                />
-                <p className="text-[13px] text-slate-500">
-                  Shown above the chat bubble icon. If empty, the welcome message is used.
-                </p>
-              </div>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip open={formData.hideTooltip ? undefined : false}>
+                  <TooltipTrigger asChild>
+                    <div className={`space-y-1.5 ${formData.hideTooltip ? "cursor-not-allowed opacity-60" : ""}`}>
+                      <Label className="text-sm font-semibold text-slate-700">Tooltip</Label>
+                      <textarea
+                        value={formData.tooltip}
+                        onChange={(e) => handleInputChange("tooltip", e.target.value)}
+                        disabled={formData.hideTooltip}
+                        placeholder="Hello, how can I assist you today?"
+                        className="min-h-[80px] w-full resize-none rounded-md border border-slate-200 p-3 text-sm shadow-sm focus:ring-1 focus:ring-slate-900 focus:outline-none disabled:pointer-events-none"
+                      />
+                      <p className="text-[13px] text-slate-500">
+                        Shown above the chat bubble icon. If empty, the welcome message is used.
+                      </p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="text-xs">Tooltip is hidden — enable it in your settings to edit this field.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               <div className="space-y-1.5">
                 <Label className="text-sm font-semibold text-slate-700">Welcome Message</Label>
@@ -947,6 +963,19 @@ const BasicTab = () => {
                     className="border-slate-200 shadow-sm"
                   />
                   <p className="text-[13px] text-slate-500">This woks in respect to the whole window size.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-slate-700">Chat Width (px)</Label>
+                  <Input
+                    type="number"
+                    min={200}
+                    max={800}
+                    value={formData.chatWidth}
+                    onChange={(e) => handleInputChange("chatWidth", Number(e.target.value))}
+                    className="border-slate-200 shadow-sm"
+                  />
+                  <p className="text-[13px] text-slate-500">Width of the chat widget in pixels, default set to 440px.</p>
                 </div>
 
                 {/* Font Family picker — temporarily hidden until CloudFront is set up

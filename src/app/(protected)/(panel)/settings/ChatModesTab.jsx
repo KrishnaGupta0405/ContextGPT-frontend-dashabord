@@ -35,7 +35,7 @@ const ChatModesTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/settings`,
+        `/chatbots/chatbot/${chatbotId}/settings`,
       );
 
       if (response.data.success) {
@@ -64,7 +64,7 @@ const ChatModesTab = () => {
       };
 
       const response = await api.patch(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/settings`,
+        `/chatbots/chatbot/${chatbotId}/settings`,
         payload,
       );
 

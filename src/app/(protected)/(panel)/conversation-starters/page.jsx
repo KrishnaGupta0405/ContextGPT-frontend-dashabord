@@ -50,7 +50,7 @@ const ConversationStarters = () => {
     setIsLoading(true);
     try {
       const response = await api.get(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/conversation-starters`,
+        `/chatbots/chatbot/${selectedChatbot.id}/conversation-starters`,
       );
       if (response.data.success && response.data.data) {
         setStarters(response.data.data.data || []);
@@ -96,7 +96,7 @@ const ConversationStarters = () => {
 
     try {
       const response = await api.delete(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/conversation-starters?convoStartId=${id}`,
+        `/chatbots/chatbot/${selectedChatbot.id}/conversation-starters?convoStartId=${id}`,
       );
       if (response.data.success) {
         toast.success(
@@ -140,12 +140,12 @@ const ConversationStarters = () => {
       if (editingId) {
         payload.id = editingId;
         response = await api.patch(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/conversation-starters`,
+          `/chatbots/chatbot/${selectedChatbot.id}/conversation-starters`,
           payload,
         );
       } else {
         response = await api.post(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/conversation-starters`,
+          `/chatbots/chatbot/${selectedChatbot.id}/conversation-starters`,
           payload,
         );
       }
@@ -180,7 +180,7 @@ const ConversationStarters = () => {
     setStarters(newStarters);
     try {
       await api.patch(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/conversation-starters/reorder`,
+        `/chatbots/chatbot/${selectedChatbot.id}/conversation-starters/reorder`,
         { orderedIds: newStarters.map((s) => s.id) },
       );
       toast.success("Order updated successfully.");
@@ -201,7 +201,7 @@ const ConversationStarters = () => {
     setStarters(newStarters);
     try {
       await api.patch(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/conversation-starters/reorder`,
+        `/chatbots/chatbot/${selectedChatbot.id}/conversation-starters/reorder`,
         { orderedIds: newStarters.map((s) => s.id) },
       );
       toast.success("Order updated successfully.");

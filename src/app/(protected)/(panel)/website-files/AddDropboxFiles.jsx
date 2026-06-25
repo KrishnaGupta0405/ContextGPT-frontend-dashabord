@@ -9,6 +9,7 @@ import {
   Check,
   Unplug,
   RefreshCw,
+  FolderInput,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useChatbot } from "@/context/ChatbotContext";
@@ -16,6 +17,7 @@ import api from "@/lib/axios";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
+import { FolderScanModal } from "./FolderScanModal";
 
 const ALLOWED_EXTENSIONS = ".pdf, .txt, .doc, .docx, .csv, .xls, .xlsx, .ppt, .pptx, .md, .html, .htm, .rtf";
 
@@ -37,6 +39,7 @@ export function AddDropboxFiles({ onBack, onAdd }) {
   const [selectedFilePaths, setSelectedFilePaths] = useState(new Map()); // id -> path
   const [importing, setImporting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [scanningFolder, setScanningFolder] = useState(null);
   const [folderStack, setFolderStack] = useState([{ path: "", name: "Dropbox" }]);
   const [nextCursor, setNextCursor] = useState(null);
 
@@ -129,6 +132,26 @@ export function AddDropboxFiles({ onBack, onAdd }) {
 
   const handleFolderClick = (folder) => {
     setFolderStack((prev) => [...prev, { path: folder.path, name: folder.name }]);
+  };
+
+  const handleFolderScanConfirm = async (scannedFiles) => {
+    setScanningFolder(null);
+    if (!chatbotId) { toast.error("No chatbot selected"); return; }
+    if (scannedFiles.length === 0) { toast.error("No files selected"); return; }
+    try {
+      setImporting(true);
+      const res = await api.post("/oauth-connect/dropbox/import", {
+        filePaths: scannedFiles.map((f) => f.path),
+        chatbotId,
+      });
+      const data = res.data.data;
+      if (data.imported > 0) { toast.success(res.data.message || `Imported ${data.imported} file(s)`); if (onAdd) onAdd(); }
+      if (data.failed > 0) toast.error(`${data.failed} file(s) failed to import`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to import files");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleBreadcrumbClick = (index) => {
@@ -307,7 +330,14 @@ export function AddDropboxFiles({ onBack, onAdd }) {
                             )}
                           </p>
                         </div>
-                        {file.isFolder && <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />}
+                        {file.isFolder ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setScanningFolder(file); }}
+                            className="flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                          >
+                            <FolderInput className="h-3 w-3" /> Import
+                          </button>
+                        ) : null}
                       </div>
                     ))}
 
@@ -326,6 +356,16 @@ export function AddDropboxFiles({ onBack, onAdd }) {
           </>
         )}
       </div>
+
+      {scanningFolder && (
+        <FolderScanModal
+          folder={scanningFolder}
+          provider={{ type: "dropbox", endpoint: "/oauth-connect/dropbox/files" }}
+          extraCtx={{}}
+          onClose={() => setScanningFolder(null)}
+          onConfirm={handleFolderScanConfirm}
+        />
+      )}
 
       {status.connected && (
         <div className="border-t border-slate-200 bg-slate-50/50 px-6 py-4">

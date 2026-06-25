@@ -245,7 +245,7 @@ export const faqCategories = [
       {
         question: "Do you store chatbot messages ?",
         answer:
-          "Yes, we log every visitor question along with the chatbot’s responses. We also capture IP addresses for security, abuse prevention, and to provide insight into where conversations originate. All conversation history is accessible to the chatbot owner within the dashboard. For instance, if you create a chatbot using SiteGPT, you can review all user interactions directly from your dashboard.",
+          "Yes, we log every visitor question along with the chatbot’s responses. We also capture IP addresses for security, abuse prevention, and to provide insight into where conversations originate. All conversation history is accessible to the chatbot owner within the dashboard. For instance, if you create a chatbot using ContextGPT, you can review all user interactions directly from your dashboard.",
       },
     ],
   },

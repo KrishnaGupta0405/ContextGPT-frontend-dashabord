@@ -359,7 +359,7 @@ const IntegrationPage = () => {
                                       side="top"
                                       className="max-w-[240px] text-center text-[12px]"
                                     >
-                                      Agents can only reply to visitors through the Zoho SalesIQ portal. Sending messages from the SiteGPT dashboard is not supported.
+                                      Agents can only reply to visitors through the Zoho SalesIQ portal. Sending messages from the ContextGPT dashboard is not supported.
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>

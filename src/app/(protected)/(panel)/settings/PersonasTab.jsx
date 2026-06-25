@@ -12,7 +12,7 @@ import {
   Form,
   FormControl,
   FormField,
-  FormItem,
+  FormItem, 
   FormLabel,
   FormMessage,
   FormDescription,
@@ -293,7 +293,7 @@ const PersonasTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/personas`,
+        `/chatbots/chatbot/${chatbotId}/personas`,
       );
 
       if (response.data.success) {
@@ -357,12 +357,12 @@ const PersonasTab = () => {
       let response;
       if (!editingPersonaId) {
         response = await api.post(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/personas`,
+          `/chatbots/chatbot/${chatbotId}/personas`,
           payload,
         );
       } else {
         response = await api.patch(
-          `/chatbots/account/${accountId}/chatbot/${chatbotId}/personas/${editingPersonaId}`,
+          `/chatbots/chatbot/${chatbotId}/personas/${editingPersonaId}`,
           payload,
         );
       }
@@ -390,7 +390,7 @@ const PersonasTab = () => {
       const account = JSON.parse(localStorage.getItem("account") || "{}");
 
       const response = await api.delete(
-        `/chatbots/account/${account.id}/chatbot/${chatbotId}/personas?personaId=${persona.id}`,
+        `/chatbots/chatbot/${chatbotId}/personas?personaId=${persona.id}`,
       );
 
       if (response.data.success) {
@@ -432,7 +432,7 @@ const PersonasTab = () => {
       }
 
       const response = await api.post(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/personas/select-persona`,
+        `/chatbots/chatbot/${chatbotId}/personas/select-persona`,
         payload,
       );
 
@@ -450,7 +450,7 @@ const PersonasTab = () => {
   };
 
   return (
-    <div className="max-w-5xl pb-24">
+    <div className="w-full pb-24">
       {/* Default Personas Section */}
       <div className="grid grid-cols-1 gap-8 border-b border-gray-100 py-10 md:grid-cols-4">
         <div className="pr-6 md:sticky md:top-14 md:col-span-1 md:self-start">

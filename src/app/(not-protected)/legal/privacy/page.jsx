@@ -455,8 +455,8 @@ export default function Privacy() {
         <h2>Service Providers and Subprocessors</h2>
         <p>
           We use third-party service providers to help us deliver our services. A complete list of our current subprocessors is maintained at{" "}
-          <Link href="https://sitegpt.ai/legal/subprocessors" className="text-black underline">
-            sitegpt.ai/legal/subprocessors
+          <Link href="https://ContextGPT.in/legal/subprocessors" className="text-black underline">
+            ContextGPT.in/legal/subprocessors
           </Link>.
         </p>
         <p>Key service providers include:</p>
@@ -535,8 +535,8 @@ export default function Privacy() {
             <tr>
               <td className="border border-gray-300 p-2">Supadata</td>
               <td className="border border-gray-300 p-2">
-                <Link href="https://supadata.ai/privacy" className="text-black underline">
-                  https://supadata.ai/privacy
+                <Link href="https://supadata.in/privacy" className="text-black underline">
+                  https://supadata.in/privacy
                 </Link>
               </td>
             </tr>
@@ -551,8 +551,8 @@ export default function Privacy() {
             <tr>
               <td className="border border-gray-300 p-2">Portkey</td>
               <td className="border border-gray-300 p-2">
-                <Link href="https://portkey.ai/privacy" className="text-black underline">
-                  https://portkey.ai/privacy
+                <Link href="https://portkey.in/privacy" className="text-black underline">
+                  https://portkey.in/privacy
                 </Link>
               </td>
             </tr> */}

@@ -56,7 +56,7 @@ const AdvanceTab = () => {
   const fetchSettings = async () => {
     setIsLoading(true);
     try {
-      const behaviorRes = await api.get(`/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/behavior`).catch(() => null);
+      const behaviorRes = await api.get(`/chatbots/chatbot/${selectedChatbot.id}/behavior`).catch(() => null);
 
       if (behaviorRes?.data?.success && behaviorRes.data.data) {
         setHasExistingSettings(true);
@@ -99,8 +99,8 @@ const AdvanceTab = () => {
     setIsSaving(true);
     try {
       const behaviorRes = hasExistingSettings
-        ? await api.patch(`/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/behavior`, formData)
-        : await api.post(`/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/behavior`, formData);
+        ? await api.patch(`/chatbots/chatbot/${selectedChatbot.id}/behavior`, formData)
+        : await api.post(`/chatbots/chatbot/${selectedChatbot.id}/behavior`, formData);
 
       if (behaviorRes.data.success) {
         setHasExistingSettings(true);

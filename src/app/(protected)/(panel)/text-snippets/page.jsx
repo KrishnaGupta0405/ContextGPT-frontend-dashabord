@@ -28,7 +28,7 @@ const TextSnippets = () => {
     setIsLoading(true);
     try {
       const response = await api.get(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/text-snippet`,
+        `/chatbots/chatbot/${selectedChatbot.id}/text-snippet`,
       );
       const data = response.data;
       if (data.success && data.data) {
@@ -51,7 +51,7 @@ const TextSnippets = () => {
     setIsSaving(true);
     try {
       const response = await api.post(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/text-snippet`,
+        `/chatbots/chatbot/${selectedChatbot.id}/text-snippet`,
         { description },
       );
 

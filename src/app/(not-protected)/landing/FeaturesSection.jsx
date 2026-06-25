@@ -150,7 +150,7 @@ const FeaturesSectionLead = () => {
             </div>
 
             <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">
-              SiteGPT gives you an unfair advantage
+              ContextGPT gives you an unfair advantage
             </h3>
 
             <ul className="space-y-4">

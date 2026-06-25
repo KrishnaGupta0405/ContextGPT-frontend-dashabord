@@ -43,7 +43,7 @@ export function CustomResponsesProvider({ children }) {
     setLoading(true);
     try {
       const res = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/custom-responses`,
+        `/chatbots/chatbot/${chatbotId}/custom-responses`,
       );
       const list = res.data?.data?.data || [];
       setPrompts(list);
@@ -63,7 +63,7 @@ export function CustomResponsesProvider({ children }) {
     const { accountId, chatbotId } = getIds();
     try {
       const res = await api.post(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/custom-responses`,
+        `/chatbots/chatbot/${chatbotId}/custom-responses`,
         data,
       );
       const newPrompt = res.data?.data;
@@ -86,7 +86,7 @@ export function CustomResponsesProvider({ children }) {
     const { accountId, chatbotId } = getIds();
     try {
       const res = await api.patch(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/custom-responses/${id}`,
+        `/chatbots/chatbot/${chatbotId}/custom-responses/${id}`,
         data,
       );
       const updated = res.data?.data;
@@ -110,7 +110,7 @@ export function CustomResponsesProvider({ children }) {
     const { accountId, chatbotId } = getIds();
     try {
       await api.delete(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/custom-responses?customResponseId=${promptId}`,
+        `/chatbots/chatbot/${chatbotId}/custom-responses?customResponseId=${promptId}`,
       );
       setPrompts((prev) => prev.filter((p) => p.id !== promptId));
       toast.success("Custom response deleted");

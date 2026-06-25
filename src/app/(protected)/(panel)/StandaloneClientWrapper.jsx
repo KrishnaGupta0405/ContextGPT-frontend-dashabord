@@ -10,7 +10,6 @@ import { ChattingSocketProvider } from "@/context/ChattingSocketContext";
 import { UnsavedChangesProvider } from "@/context/UnsavedChangesContext";
 import { getSocket } from "@/lib/socket";
 import { toast } from "sonner";
-import FeaturebaseWidget from "@/components/FeaturebaseWidget";
 import Link from "next/link";
 import { CreditCard, BarChart2, KeyRound, User } from "lucide-react";
 

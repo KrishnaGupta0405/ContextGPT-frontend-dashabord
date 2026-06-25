@@ -104,7 +104,7 @@ export default function LeadGeneration() {
                 typing.
               </p>
               <p className="mt-4 text-lg leading-relaxed text-slate-600">
-                In just <strong>5 minutes</strong>, SiteGPT&apos;s{" "}
+                In just <strong>5 minutes</strong>, ContextGPT&apos;s{" "}
                 <strong>InstantTrain&trade; AI</strong> makes your website a{" "}
                 <strong>24/7 sales rep</strong> — replying in{" "}
                 <strong>5 seconds</strong>, capturing leads instantly, and

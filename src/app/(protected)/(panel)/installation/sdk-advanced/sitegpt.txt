@@ -25,7 +25,7 @@ By default, the widget appears as a floating chat bubble. You can embed the widg
 <div class="sitegpt-chat-widget" data-sitegpt-id="93ab558e-8c8d-415e-8255-0fe0c1df4bb2" style="width: 100%; height: 500px;"></div>
 
 <!-- Load the widget script -->
-<script src="https://sitegpt.ai/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js"></script>
+<script src="https://sitegpt.in/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js"></script>
 ```
 
 ### Multiple Instances of the Same Chatbot
@@ -37,7 +37,7 @@ By default, the widget appears as a floating chat bubble. You can embed the widg
 <div class="sitegpt-chat-widget" data-sitegpt-id="93ab558e-8c8d-415e-8255-0fe0c1df4bb2" style="width: 100%; height: 400px;"></div>
 
 <!-- Load the widget script once -->
-<script src="https://sitegpt.ai/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js"></script>
+<script src="https://sitegpt.in/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js"></script>
 ```
 
 > **ℹ️ How Container Mode Works**
@@ -61,7 +61,7 @@ Chat with us
 </button>
 
 <!-- Load widget with hideButton parameter -->
-<script src="https://sitegpt.ai/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js?hideButton=true"></script>
+<script src="https://sitegpt.in/widget/93ab558e-8c8d-415e-8255-0fe0c1df4bb2.js?hideButton=true"></script>
 ```
 
 > **ℹ️ How It Works**
@@ -262,7 +262,7 @@ window.$sitegpt.push([
 const crypto = require("crypto")
 
 // Your API key (keep it private!)
-// Find yours at https://sitegpt.ai/billing
+// Find yours at https://sitegpt.in/billing
 const apiKey = 'your-api-key-here'
 
 // Sign an email using HMAC-SHA256

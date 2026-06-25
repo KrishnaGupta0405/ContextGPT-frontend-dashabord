@@ -1,0 +1,25 @@
+{
+  "name": "ContextGPT",
+  "short_name": "ContextGPT",
+  "description": "Turn your website into an AI chatbot in minutes. Train on your content, capture leads, and answer questions 24/7.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/icons/Contextgpt_icon_website_topbar.avif",
+      "sizes": "192x192",
+      "type": "image/avif"
+    },
+    {
+      "src": "/icons/Contextgpt_icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr"
+}

@@ -61,7 +61,7 @@ const ConversationFollowups = () => {
     setIsLoading(true);
     try {
       const response = await api.get(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/follow-up-prompts`,
+        `/chatbots/chatbot/${selectedChatbot.id}/follow-up-prompts`,
       );
       if (response.data.success && response.data.data) {
         setFollowups(response.data.data.data || []);
@@ -110,7 +110,7 @@ const ConversationFollowups = () => {
 
     try {
       const response = await api.delete(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/follow-up-prompts?followUpPromptId=${id}`,
+        `/chatbots/chatbot/${selectedChatbot.id}/follow-up-prompts?followUpPromptId=${id}`,
       );
       if (response.data.success) {
         toast.success(
@@ -168,13 +168,13 @@ const ConversationFollowups = () => {
       if (editingId) {
         // Update
         response = await api.patch(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/follow-up-prompts/${editingId}`,
+          `/chatbots/chatbot/${selectedChatbot.id}/follow-up-prompts/${editingId}`,
           payload,
         );
       } else {
         // Create
         response = await api.post(
-          `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/follow-up-prompts`,
+          `/chatbots/chatbot/${selectedChatbot.id}/follow-up-prompts`,
           payload,
         );
       }
@@ -206,7 +206,7 @@ const ConversationFollowups = () => {
     setFollowups(newFollowups);
     try {
       await api.patch(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/follow-up-prompts/reorder`,
+        `/chatbots/chatbot/${selectedChatbot.id}/follow-up-prompts/reorder`,
         { orderedIds: newFollowups.map((f) => f.id) },
       );
       toast.success("Order updated successfully.");
@@ -224,7 +224,7 @@ const ConversationFollowups = () => {
     setFollowups(newFollowups);
     try {
       await api.patch(
-        `/chatbots/account/${account.id}/chatbot/${selectedChatbot.id}/follow-up-prompts/reorder`,
+        `/chatbots/chatbot/${selectedChatbot.id}/follow-up-prompts/reorder`,
         { orderedIds: newFollowups.map((f) => f.id) },
       );
       toast.success("Order updated successfully.");

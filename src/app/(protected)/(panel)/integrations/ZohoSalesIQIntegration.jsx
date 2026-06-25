@@ -11,7 +11,7 @@ export const ZohoSalesIQIntegration = {
   modalTitle: "Set Up Zoho SalesIQ",
   modalDescription: "Follow the steps below to create a Zobot, then click Next to get your callback URL.",
   description:
-    "Connect Zoho SalesIQ with SiteGPT and chat with your bot directly from Zoho SalesIQ via Zobot.",
+    "Connect Zoho SalesIQ with ContextGPT and chat with your bot directly from Zoho SalesIQ via Zobot.",
   fields: [],
   renderExtraModalContent: () => {
     return (
@@ -33,18 +33,18 @@ export const ZohoSalesIQIntegration = {
             → <strong>Settings → Brands → Add</strong>
           </li>
           <li>
-            Name the brand <strong>SiteGPT Zoho</strong> → Save
+            Name the brand <strong>ContextGPT Zoho</strong> → Save
           </li>
           <li>
             Go to <strong>Settings → Zobot → New Bot</strong>
           </li>
           <li>
-            Name it <strong>SiteGPT Bot</strong>, select{" "}
+            Name it <strong>ContextGPT Bot</strong>, select{" "}
             <strong>Third-party platforms → Webhook</strong> → Next
           </li>
           <li>
             Select channels: <strong>Website, Mobile</strong>. Select{" "}
-            <strong>SiteGPT Zoho</strong> as the brand → Next
+            <strong>ContextGPT Zoho</strong> as the brand → Next
           </li>
           <li>
             Select <strong>All visitors</strong>. Set &quot;When should the bot initiate chat?&quot; to{" "}
@@ -110,7 +110,7 @@ export const ZohoSalesIQIntegration = {
             >
               Zoho SalesIQ portal
             </a>
-            . Sending messages from the SiteGPT dashboard is not supported for
+            . Sending messages from the ContextGPT dashboard is not supported for
             Zoho SalesIQ conversations.
           </p>
         </div>
@@ -122,7 +122,7 @@ export const ZohoSalesIQIntegration = {
           </p>
           <ol className="text-[11px] text-purple-700 list-decimal pl-4 space-y-0.5">
             <li>
-              Go to <strong>Settings → Brands → SiteGPT Zoho → Installation → Website</strong>
+              Go to <strong>Settings → Brands → ContextGPT Zoho → Installation → Website</strong>
             </li>
             <li>
               Copy the HTML embed code and paste it into a test page (e.g.{" "}

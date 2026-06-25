@@ -46,7 +46,7 @@ const UserDataTab = () => {
       if (!accountId) throw new Error("Account ID missing");
 
       const response = await api.get(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/user-data-settings`,
+        `/chatbots/chatbot/${chatbotId}/user-data-settings`,
       );
 
       if (response.data.success) {
@@ -84,7 +84,7 @@ const UserDataTab = () => {
       };
 
       const response = await api.patch(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/user-data-settings`,
+        `/chatbots/chatbot/${chatbotId}/user-data-settings`,
         payload,
       );
 

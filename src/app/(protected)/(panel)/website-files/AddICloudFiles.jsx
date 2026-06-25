@@ -13,6 +13,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   X,
+  FolderInput,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useChatbot } from "@/context/ChatbotContext";
@@ -20,6 +21,7 @@ import api from "@/lib/axios";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
+import { FolderScanModal } from "./FolderScanModal";
 
 const ALLOWED_EXTENSIONS = ".pdf, .txt, .doc, .docx, .csv, .xls, .xlsx, .ppt, .pptx, .md, .html, .htm, .rtf";
 
@@ -46,6 +48,7 @@ export function AddICloudFiles({ onBack, onAdd }) {
   const [folderStack, setFolderStack] = useState([{ id: "root", name: "iCloud Drive" }]);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [scanningFolder, setScanningFolder] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [fileTypeFilter, setFileTypeFilter] = useState("all");
@@ -206,6 +209,26 @@ export function AddICloudFiles({ onBack, onAdd }) {
 
   const handleFolderClick = (folder) => {
     setFolderStack((prev) => [...prev, { id: folder.id, name: folder.name }]);
+  };
+
+  const handleFolderScanConfirm = async (scannedFiles) => {
+    setScanningFolder(null);
+    if (!chatbotId) { toast.error("No chatbot selected"); return; }
+    if (scannedFiles.length === 0) { toast.error("No files selected"); return; }
+    try {
+      setImporting(true);
+      const res = await api.post("/oauth-connect/icloud/import", {
+        fileIds: scannedFiles.map((f) => f.id),
+        chatbotId,
+      });
+      const data = res.data.data;
+      if (data.imported > 0) { toast.success(res.data.message || `Imported ${data.imported} file(s)`); if (onAdd) onAdd(); }
+      if (data.failed > 0) toast.error(`${data.failed} file(s) failed to import`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to import files");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const handleBreadcrumbClick = (index) => {
@@ -503,11 +526,20 @@ export function AddICloudFiles({ onBack, onAdd }) {
                         </div>
 
                         <div className="w-[140px] shrink-0">
-                          <p className="truncate text-sm text-slate-500">{file.ownerName || "—"}</p>
+                          <p className="truncate text-sm text-slate-500">{file.isFolder ? "" : (file.ownerName || "—")}</p>
                         </div>
 
                         <div className="w-[80px] shrink-0 text-right">
-                          <p className="text-sm text-slate-500">{file.isFolder ? "—" : formatFileSize(file.size)}</p>
+                          {file.isFolder ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setScanningFolder(file); }}
+                              className="flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                            >
+                              <FolderInput className="h-3 w-3" /> Import
+                            </button>
+                          ) : (
+                            <p className="text-sm text-slate-500">{formatFileSize(file.size)}</p>
+                          )}
                         </div>
 
                         <div className="w-[120px] shrink-0 text-right">
@@ -535,6 +567,16 @@ export function AddICloudFiles({ onBack, onAdd }) {
           </>
         )}
       </div>
+
+      {scanningFolder && (
+        <FolderScanModal
+          folder={scanningFolder}
+          provider={{ type: "icloud", endpoint: "/oauth-connect/icloud/files", idKey: "folderId" }}
+          extraCtx={{}}
+          onClose={() => setScanningFolder(null)}
+          onConfirm={handleFolderScanConfirm}
+        />
+      )}
 
       {/* Footer */}
       {status.connected && (

@@ -42,8 +42,52 @@ import {
   Trash2
 } from 'lucide-react';
 
+const securityFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Is ContextGPT GDPR compliant?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. ContextGPT is GDPR compliant. We give you full control over data retention, deletion, and user consent so you can meet your compliance obligations.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does ContextGPT encrypt my data?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "All data is encrypted in transit using TLS 1.2+ and at rest using AES-256 encryption. Your content and conversation data are never shared with third parties.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Who can access my chatbot's data?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Only authorized members of your team can access your chatbot data. ContextGPT provides role-based access controls so you decide who sees what.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I delete my data from ContextGPT?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. You can delete your chatbot data, conversation history, and account at any time from your dashboard settings.",
+      },
+    },
+  ],
+};
+
 const Security = () => {
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(securityFaqSchema) }}
+      />
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100">
       {/* Hero */}
       <section className="pt-24 pb-16 px-4 max-w-5xl mx-auto text-center flex flex-col items-center">
@@ -352,8 +396,8 @@ const Security = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Found a vulnerability?</h2>
           <p className="text-blue-100 text-lg mb-8">
             If you've found a security issue in ContextGPT — the dashboard, the chat widget, or the API — please report it to{' '}
-            <a href="mailto:security@contextgpt.ai" className="underline font-semibold text-white hover:text-blue-200 transition-colors">
-              security@contextgpt.ai
+            <a href="mailto:security@contextgpt.in" className="underline font-semibold text-white hover:text-blue-200 transition-colors">
+              security@contextgpt.in
             </a>
             . We respond within 24 hours, won't take legal action against good-faith researchers, and credit those who help us improve.
           </p>
@@ -374,6 +418,7 @@ const Security = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

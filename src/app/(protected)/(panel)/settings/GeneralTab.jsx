@@ -81,7 +81,7 @@ const GeneralTab = () => {
                 `/chatbots/account/${accountId}/chatbot/${currentChatbotId}`,
               ),
               api.get(
-                `/chatbots/account/${accountId}/chatbot/${currentChatbotId}/settings`,
+                `/chatbots/chatbot/${currentChatbotId}/settings`,
               ),
               api.get(`/website/${currentChatbotId}/llm-models`),
             ]);
@@ -205,7 +205,7 @@ const GeneralTab = () => {
       };
 
       const settingsResponse = await api.patch(
-        `/chatbots/account/${accountId}/chatbot/${chatbotId}/settings`,
+        `/chatbots/chatbot/${chatbotId}/settings`,
         settingsPayload,
       );
 

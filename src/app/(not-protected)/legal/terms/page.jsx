@@ -61,7 +61,7 @@ export default function Terms() {
           Our Privacy Policy also governs your use of our Service and explains
           how we collect, safeguard and disclose information that results from
           your use of our web pages. Please read it{" "}
-          <Link href="https://contextgpt.ai/legal/privacy" className="text-black underline">https://ContextGPT.in/legal/privacy</Link>.
+          <Link href="https://contextgpt.in/legal/privacy" className="text-black underline">https://ContextGPT.in/legal/privacy</Link>.
         </p>
         <p>
           Your agreement with us includes these Terms and our Privacy Policy
