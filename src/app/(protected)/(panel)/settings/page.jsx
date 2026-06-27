@@ -24,7 +24,7 @@ const VALID_TABS = [
   "instructions",
 ];
 
-const SettingsPage = () => {
+const SettingsPageContent = () => {
   const { guardNavigation } = useUnsavedChanges();
   const router = useRouter();
   const pathname = usePathname();
@@ -150,5 +150,11 @@ const SettingsPage = () => {
     </>
   );
 };
+
+const SettingsPage = () => (
+  <React.Suspense>
+    <SettingsPageContent />
+  </React.Suspense>
+);
 
 export default SettingsPage;

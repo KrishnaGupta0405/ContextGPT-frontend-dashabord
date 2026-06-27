@@ -7,7 +7,7 @@ import PromptFormModal from "./PromptFormModal";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-export default function RightPage() {
+function RightPageContent() {
   const { prompts, loading, selectedChatbot, handleEdit, handleDelete } =
     useCustomResponses();
   const searchParams = useSearchParams();
@@ -74,5 +74,13 @@ export default function RightPage() {
         onSubmit={onEditSubmit}
       />
     </div>
+  );
+}
+
+export default function RightPage() {
+  return (
+    <React.Suspense>
+      <RightPageContent />
+    </React.Suspense>
   );
 }

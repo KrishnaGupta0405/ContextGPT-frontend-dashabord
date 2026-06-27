@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CustomBreadcrumb } from "@/components/ui/CustomBreadcrumb";
 import api from "@/lib/axios";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -119,5 +119,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <React.Suspense>
+      <VerifyEmailContent />
+    </React.Suspense>
   );
 }

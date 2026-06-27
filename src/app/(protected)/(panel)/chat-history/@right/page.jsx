@@ -23,7 +23,7 @@ import {
 import MessageItem from "./MessageItem";
 import ChatHeader from "./ChatHeader";
 
-const ChatHistoryRight = () => {
+const ChatHistoryRightContent = () => {
   const { selectedChatbot } = useChatbot();
   const { isConnected, send, addListener } = useChattingSocket() || {};
   const searchParams = useSearchParams();
@@ -480,5 +480,11 @@ const ChatHistoryRight = () => {
     </div>
   );
 };
+
+const ChatHistoryRight = () => (
+  <React.Suspense>
+    <ChatHistoryRightContent />
+  </React.Suspense>
+);
 
 export default ChatHistoryRight;

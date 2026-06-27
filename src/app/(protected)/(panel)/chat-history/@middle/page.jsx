@@ -90,7 +90,7 @@ const formatThreadTime = (dateStr) => {
   return `${date.toLocaleDateString([], dateOpts)}, ${time}`;
 };
 
-const ChatHistoryMiddle = () => {
+const ChatHistoryMiddleContent = () => {
   const { selectedChatbot } = useChatbot();
   const { account } = useAuth();
   const { isConnected, send, addListener } = useChattingSocket() || {};
@@ -1379,5 +1379,11 @@ const ChatHistoryMiddle = () => {
     </div>
   );
 };
+
+const ChatHistoryMiddle = () => (
+  <React.Suspense>
+    <ChatHistoryMiddleContent />
+  </React.Suspense>
+);
 
 export default ChatHistoryMiddle;

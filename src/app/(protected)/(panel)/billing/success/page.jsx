@@ -6,7 +6,7 @@ import { CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function CheckoutSuccess() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const plan = searchParams.get("plan") || "your";
   const interval = searchParams.get("interval");
@@ -37,5 +37,13 @@ export default function CheckoutSuccess() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function CheckoutSuccess() {
+  return (
+    <React.Suspense>
+      <CheckoutSuccessContent />
+    </React.Suspense>
   );
 }

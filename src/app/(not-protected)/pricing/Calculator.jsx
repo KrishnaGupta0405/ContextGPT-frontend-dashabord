@@ -104,7 +104,7 @@ function buildFeatures(plan) {
 const fmt = (n) => n?.toLocaleString() ?? "—";
 const capitalize = (str) => str?.charAt(0).toUpperCase() + str?.slice(1) ?? "";
 
-export default function Calculator({ plans: rawPlans = [], models: rawModels = [], loading = true }) {
+function CalculatorContent({ plans: rawPlans = [], models: rawModels = [], loading = true }) {
   const plans = mergePlans(rawPlans);
   const models = rawModels.map(normalizeModel);
   const searchParams = useSearchParams();
@@ -418,6 +418,14 @@ export default function Calculator({ plans: rawPlans = [], models: rawModels = [
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function Calculator(props) {
+  return (
+    <React.Suspense>
+      <CalculatorContent {...props} />
+    </React.Suspense>
   );
 }
 

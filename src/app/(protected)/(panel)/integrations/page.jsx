@@ -64,7 +64,7 @@ const PLATFORMS = [
 ];
 
 // ─── Main component ──────────────────────────────────────────────────────────
-const IntegrationPage = () => {
+const IntegrationPageContent = () => {
   const { account, subscription } = useAuth();
   const { selectedChatbot } = useChatbot();
   const searchParams = useSearchParams();
@@ -678,5 +678,11 @@ const IntegrationPage = () => {
     </div>
   );
 };
+
+const IntegrationPage = () => (
+  <React.Suspense>
+    <IntegrationPageContent />
+  </React.Suspense>
+);
 
 export default IntegrationPage;

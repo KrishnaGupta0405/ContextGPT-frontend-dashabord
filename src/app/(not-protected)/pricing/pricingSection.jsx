@@ -11,7 +11,7 @@ import AddonsSection from "@/app/(protected)/(panel)/billing/addons/AddonsSectio
 import PromoCodeButton from "./PromoCodeButton";
 import { useAuth } from "@/context/AuthContext";
 
-export default function PricingSection({ plans = [], loading = true }) {
+function PricingSectionContent({ plans = [], loading = true }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -881,5 +881,13 @@ export default function PricingSection({ plans = [], loading = true }) {
         }}
       />
     </div>
+  );
+}
+
+export default function PricingSection(props) {
+  return (
+    <React.Suspense>
+      <PricingSectionContent {...props} />
+    </React.Suspense>
   );
 }

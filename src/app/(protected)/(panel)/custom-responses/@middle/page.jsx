@@ -6,7 +6,7 @@ import PromptsSidebar from "./PromptsSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function MiddlePage() {
+function MiddlePageContent() {
   const { prompts, loading, selectedChatbot } = useCustomResponses();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,5 +45,13 @@ export default function MiddlePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MiddlePage() {
+  return (
+    <React.Suspense>
+      <MiddlePageContent />
+    </React.Suspense>
   );
 }
