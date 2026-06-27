@@ -548,10 +548,10 @@ data-chatbot-id="${chatbotId}">
                       </p>
                       <ShikiCodeBlock code={jsEmbed} lang="html" />
                       <div className="mt-3 text-[13.5px] text-blue-700 bg-blue-50/60 p-3 rounded-[6px]">
-                        💡 <strong>Tip:</strong> If you are testing locally with a local backend, you can specify the server URL by adding <code className="bg-blue-100 px-1.5 py-0.5 rounded text-[13px]">data-server="http://localhost:9000"</code> to the script tag:
+                        {/* 💡 <strong>Tip:</strong> If you are testing locally with a local backend, you can specify the server URL by adding <code className="bg-blue-100 px-1.5 py-0.5 rounded text-[13px]">data-server="http://localhost:9000"</code> to the script tag: */}
                         <div className="mt-2">
                           <code className="block bg-[#dce6f6] p-2.5 rounded font-mono text-[13px] text-blue-800 whitespace-pre-wrap break-all">
-                            {`<script type="module" src="https://contextgpt-widget-testing.vercel.app/loader.js" data-chatbot-id="${chatbotId}" data-server="http://localhost:9000"></script>`}
+                            {`<script type="module" src="https://contextgpt-widget-testing.vercel.app/loader.js" data-chatbot-id="${chatbotId}"></script>`}
                           </code>
                         </div>
                       </div>

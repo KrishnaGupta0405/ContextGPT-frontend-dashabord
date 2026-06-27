@@ -125,7 +125,7 @@ export default function StandaloneClientWrapper({ children }) {
     script.src =
       `https://contextgpt-widget-testing.vercel.app/loader.js?v=${Date.now()}`;
     script.setAttribute("data-chatbot-id", chatbotId);
-    script.setAttribute("data-server", "http://localhost:9000");
+    // script.setAttribute("data-server", "http://localhost:9000");
     document.body.appendChild(script);
 
     return () => {
