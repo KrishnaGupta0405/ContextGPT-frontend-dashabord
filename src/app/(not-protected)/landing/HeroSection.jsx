@@ -19,7 +19,7 @@ export default function HeroSection() {
     embedded.type = "module";
     embedded.src = "https://contextgpt-widget-testing.vercel.app/loader.js?instance=embedded-hero&chatbotId=27df3d37-8395-4d1f-a084-5609237ae367&server=http%3A%2F%2Flocalhost%3A9000&mode=embedded&container=%23contextgpt-hero-container";
     embedded.setAttribute("data-chatbot-id", "27df3d37-8395-4d1f-a084-5609237ae367");
-    embedded.setAttribute("data-server", "http://localhost:9000");
+    // embedded.setAttribute("data-server", "http://localhost:9000");
     embedded.setAttribute("data-mode", "embedded");
     embedded.setAttribute("data-container", "#contextgpt-hero-container");
     embedded.setAttribute("data-instance", "embedded-hero");
@@ -36,7 +36,7 @@ export default function HeroSection() {
       floating.type = "module";
       floating.src = "https://contextgpt-widget-testing.vercel.app/loader.js?instance=floating&chatbotId=27df3d37-8395-4d1f-a084-5609237ae367&server=http%3A%2F%2Flocalhost%3A9000";
       floating.setAttribute("data-chatbot-id", "27df3d37-8395-4d1f-a084-5609237ae367");
-      floating.setAttribute("data-server", "http://localhost:9000");
+      // floating.setAttribute("data-server", "http://localhost:9000");
       floating.setAttribute("data-instance", "floating");
       document.body.appendChild(floating);
       // console.log("[HeroSection] floating script injected");

@@ -22,7 +22,7 @@ const AppearanceRight = () => {
     script.type = "module";
     script.src = `https://contextgpt-widget-testing.vercel.app/loader.js?instance=appearance-preview&v=${Date.now()}`;
     script.setAttribute("data-chatbot-id", chatbotId);
-    script.setAttribute("data-server", "http://localhost:9000");
+    // script.setAttribute("data-server", "http://localhost:9000");
     script.setAttribute("data-mode", "embedded");
     script.setAttribute("data-container", "#contextgpt-appearance-container");
     script.setAttribute("data-instance", "appearance-preview");
