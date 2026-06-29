@@ -577,8 +577,7 @@ export default function ContextGPTChat() {
     script.type = "module";
     script.src = "https://contextgpt-widget-testing.vercel.app/loader.js";
     script.setAttribute("data-chatbot-id", "${chatbotId}");
-    // Optional: uncomment for local development
-    // script.setAttribute("data-server", "http://localhost:9000");
+    if (process.env.NEXT_PUBLIC_ENV === "development") script.setAttribute("data-server", "http://localhost:9000");
 
     document.body.appendChild(script);
 

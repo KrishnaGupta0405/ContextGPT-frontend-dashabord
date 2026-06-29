@@ -24,7 +24,7 @@ export function IntegrationsSection() {
 
         <div className="relative -mt-30 -mb-30 flex items-center justify-center">
           <img
-            src="/icons/Integrations_bg.svg"
+            src="/icons/integrations_bg.svg" 
             alt="Hero"
             width={100}
             height={100}

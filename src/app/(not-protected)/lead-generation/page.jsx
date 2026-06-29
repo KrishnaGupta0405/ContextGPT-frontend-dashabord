@@ -147,7 +147,7 @@ export default function LeadGeneration() {
         <Script
           src="https://contextgpt-widget-testing.vercel.app/loader.js?instance=embedded-leadgen"
           data-chatbot-id="27df3d37-8395-4d1f-a084-5609237ae367"
-          // data-server="http://localhost:9000"
+          {...(process.env.NEXT_PUBLIC_ENV === "development" && { "data-server": "http://localhost:9000" })}
           data-mode="embedded"
           data-container="#contextgpt-leadgen-container"
           data-instance="embedded-leadgen"

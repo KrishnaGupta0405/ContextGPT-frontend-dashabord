@@ -13,14 +13,14 @@ const features = [
 export default function HeroSection() {
   useEffect(() => {
     console.log("[HeroSection] useEffect mounting");
-
+ 
     // Embedded hero widget
     const embedded = document.createElement("script");
     embedded.type = "module";
     // removed the data-server tag from the src URL.
     embedded.src = "https://contextgpt-widget-testing.vercel.app/loader.js?instance=embedded-hero&chatbotId=27df3d37-8395-4d1f-a084-5609237ae367&mode=embedded&container=%23contextgpt-hero-container";
     embedded.setAttribute("data-chatbot-id", "27df3d37-8395-4d1f-a084-5609237ae367");
-    // embedded.setAttribute("data-server", "http://localhost:9000");
+    if (process.env.NEXT_PUBLIC_ENV === "development") embedded.setAttribute("data-server", "http://localhost:9000");
     embedded.setAttribute("data-mode", "embedded");
     embedded.setAttribute("data-container", "#contextgpt-hero-container");
     embedded.setAttribute("data-instance", "embedded-hero");
@@ -37,7 +37,7 @@ export default function HeroSection() {
       floating.type = "module";
       floating.src = "https://contextgpt-widget-testing.vercel.app/loader.js?instance=floating&chatbotId=27df3d37-8395-4d1f-a084-5609237ae367";
       floating.setAttribute("data-chatbot-id", "27df3d37-8395-4d1f-a084-5609237ae367");
-      // floating.setAttribute("data-server", "http://localhost:9000");
+      if (process.env.NEXT_PUBLIC_ENV === "development") floating.setAttribute("data-server", "http://localhost:9000");
       floating.setAttribute("data-instance", "floating");
       document.body.appendChild(floating);
       // console.log("[HeroSection] floating script injected");
