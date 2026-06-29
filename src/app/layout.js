@@ -55,6 +55,7 @@ export const metadata = {
 import { AuthProvider } from "@/context/AuthContext";
 import SessionClearer from "@/components/SessionClearer";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 
 const siteSchema = {
   "@context": "https://schema.org",
@@ -114,6 +115,7 @@ export default function RootLayout({ children }) {
           <TooltipProvider>
             {/* <NavigationMenuDemo /> */}
             {children}
+            <Analytics />
             <Toaster position="bottom-right" richColors />
           </TooltipProvider>
         </AuthProvider>
